@@ -1,0 +1,442 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f7faf9 0%, #e8f5f0 100%);
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ========== Navigation Bar ========== */
+
+.navbar {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.navBrand h2 {
+  color: #1f7a4d;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.navActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.navBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid #1f7a4d;
+  color: #1f7a4d;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.navBtn:hover {
+  background: #eef6f2;
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ef4444;
+  border: none;
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.logoutBtn:hover {
+  background: #dc2626;
+}
+
+/* ========== Welcome Section ========== */
+
+.welcomeSection {
+  background: linear-gradient(135deg, #1f7a4d 0%, #2fa36b 100%);
+  color: #ffffff;
+  padding: 48px;
+  margin: 24px 48px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(31, 122, 77, 0.2);
+}
+
+.welcomeContent {
+  margin-bottom: 32px;
+}
+
+.welcomeTitle {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+}
+
+.welcomeSubtitle {
+  font-size: 16px;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+}
+
+.statCard {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.statIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.statValue {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 14px;
+  opacity: 0.85;
+  margin: 4px 0 0 0;
+}
+
+/* ========== Main Content ========== */
+
+.mainContent {
+  padding: 0 48px 48px;
+}
+
+/* ========== Section Styling ========== */
+
+.section {
+  margin-bottom: 48px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.sectionTitleWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sectionTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.badge {
+  background: #e8f5e9;
+  color: #2fa36b;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid #c8e6c9;
+}
+
+.badgeSecondary {
+  background: #fff3e0;
+  color: #f57c00;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid #ffe0b2;
+}
+
+/* ========== Empty State ========== */
+
+.emptyState {
+  background: #ffffff;
+  border: 2px dashed #e5e7eb;
+  border-radius: 12px;
+  padding: 64px 32px;
+  text-align: center;
+}
+
+.emptyState svg {
+  margin-bottom: 16px;
+}
+
+.emptyText {
+  font-size: 16px;
+  color: #6b7280;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+}
+
+.emptySubtext {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+/* ========== Exam Cards ========== */
+
+.examGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.examCard {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.examCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  border-color: #2fa36b;
+}
+
+.examCardUpcoming {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  opacity: 0.85;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.examCardUpcoming:hover {
+  opacity: 1;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.examHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.liveBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
+  background: #ffffff;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.upcomingBadge {
+  background: #fff3e0;
+  color: #f57c00;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border: 1px solid #ffe0b2;
+}
+
+.examName {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+}
+
+.examDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.examDetail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.examDetail svg {
+  flex-shrink: 0;
+}
+
+/* ========== Buttons ========== */
+
+.startBtn {
+  width: 100%;
+  background: #2fa36b;
+  color: #ffffff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.startBtn:hover {
+  background: #278b5c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(47, 163, 107, 0.3);
+}
+
+.startBtn:active {
+  transform: translateY(0);
+}
+
+.disabledBtn {
+  width: 100%;
+  background: #f3f4f6;
+  color: #9ca3af;
+  border: 1px solid #e5e7eb;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: not-allowed;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ========== Responsive Design ========== */
+
+@media (max-width: 1024px) {
+  .navbar {
+    padding: 16px 24px;
+  }
+
+  .welcomeSection {
+    margin: 24px 24px;
+    padding: 32px 24px;
+  }
+
+  .mainContent {
+    padding: 0 24px 24px;
+  }
+
+  .examGrid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .navActions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .welcomeSection {
+    margin: 16px;
+    padding: 24px 16px;
+  }
+
+  .welcomeTitle {
+    font-size: 24px;
+  }
+
+  .mainContent {
+    padding: 0 16px 16px;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .examGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .navBtn,
+  .logoutBtn {
+    flex: 1;
+    justify-content: center;
+  }
+}

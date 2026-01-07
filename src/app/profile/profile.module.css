@@ -1,0 +1,147 @@
+.container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 24px;
+  background: #f9fdf8;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.title {
+  color: #1f7a4d;
+  margin-bottom: 4px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #4b6b5a;
+  margin-bottom: 20px;
+}
+
+.loading {
+  padding: 24px;
+  color: #4b6b5a;
+  text-align: center;
+}
+
+.error {
+  color: #d32f2f;
+  font-size: 14px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form input,
+.form select {
+  padding: 10px 12px;
+  border: 1px solid #cfe8da;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form input:focus,
+.form select:focus {
+  border-color: #2fa36b;
+  box-shadow: 0 0 4px rgba(47, 163, 107, 0.4);
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+}
+
+/* Buttons */
+.saveBtn,
+.editBtn,
+.cancelBtn {
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s;
+}
+
+.saveBtn {
+  background: #2fa36b;
+  color: #ffffff;
+}
+
+.saveBtn:hover:not(:disabled) {
+  background: #278b5c;
+}
+
+.saveBtn:disabled {
+  background: #9dd9b8;
+  cursor: not-allowed;
+}
+
+.editBtn {
+  background: #f0f8f5;
+  color: #2fa36b;
+  border: 1px solid #2fa36b;
+}
+
+.editBtn:hover {
+  background: #e0f2e8;
+}
+
+.cancelBtn {
+  background: #f2f2f2;
+  color: #555;
+  border: 1px solid #ccc;
+}
+
+.cancelBtn:hover {
+  background: #e0e0e0;
+}
+
+/* Button row for edit mode */
+.buttonRow {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* View mode */
+.viewMode {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.viewMode p {
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid #cfe8da;
+  border-radius: 6px;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.viewMode strong {
+  color: #2fa36b;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+  .row {
+    flex-direction: column;
+  }
+
+  .buttonRow {
+    flex-direction: column;
+  }
+}

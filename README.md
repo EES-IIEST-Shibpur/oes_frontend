@@ -1,36 +1,175 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+You are implementing the FRONTEND of an Online Examination System (OES)
+using Next.js App Router and JavaScript (NOT TypeScript).
 
-## Getting Started
+Follow ALL rules strictly.
 
-First, run the development server:
+====================================================
+TECH STACK & CONSTRAINTS
+====================================================
+- Framework: Next.js (App Router)
+- Language: JavaScript only
+- Styling: minimal inline styles or basic CSS (no UI library unless already present)
+- Auth: JWT Bearer token stored in localStorage
+- Backend is already implemented — DO NOT invent APIs
+- If a page/file already exists, EDIT it instead of creating duplicates
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+====================================================
+ROUTING STRUCTURE
+====================================================
+/app
+ ├── signup/page.js
+ ├── verify-otp/page.js
+ ├── login/page.js
+ ├── dashboard/page.js
+ ├── profile/page.js
+ └── exam/[examId]/page.js
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+====================================================
+AUTH HANDLING (GLOBAL RULE)
+====================================================
+- Every API call MUST include:
+  Authorization: Bearer <token from localStorage>
+- If any API returns 401 or 403:
+  - Redirect user to /login
+- Do NOT use server components for auth pages
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+====================================================
+USER FLOW (STRICT)
+====================================================
+1. Signup → OTP Verification → Login
+2. After login → redirect to Dashboard
+3. Profile completion is OPTIONAL (NOT mandatory)
+4. Exams can be attempted even if profile is incomplete
+5. Profile is encouraged only for reporting purposes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+====================================================
+DASHBOARD PAGE BEHAVIOR
+====================================================
+- Fetch user info from GET /api/me
+- Fetch exams from GET /api/exams
+- Show:
+  - Candidate Profile link
+  - Live Exams
+  - Upcoming Exams
+- If profile is incomplete:
+  - Show NON-BLOCKING warning/banner encouraging profile completion
+  - MUST NOT block Start Exam button
 
-## Learn More
+START EXAM FLOW:
+- On clicking Start Exam:
+  1. Show confirmation dialog
+  2. Call:
+     POST /api/exam-attempt/:examId/start
+  3. Backend returns { success, attemptId }
+  4. Redirect to:
+     /exam/:examId
+- DO NOT fetch questions or time here
 
-To learn more about Next.js, take a look at the following resources:
+====================================================
+PROFILE PAGE BEHAVIOR (/profile)
+====================================================
+- Fetch existing profile:
+  GET /api/profile
+- Allow user to edit:
+  - fullName
+  - course
+  - department
+  - year
+  - semester
+  - enrollmentNumber
+- All fields required for saving
+- Save using:
+  POST /api/profile
+- On success:
+  - Show success message
+  - Redirect to /dashboard
+- Profile completion does NOT affect exam eligibility
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+====================================================
+EXAM INTERFACE PAGE (/exam/[examId])
+====================================================
+ON PAGE LOAD (AND REFRESH):
+- Call:
+  GET /api/exam-attempt/:examId
+- Response contains:
+  - questions[]
+  - remainingSeconds
+  - savedAnswers[]
+- Hydrate full frontend state from this response
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+STATE MANAGEMENT:
+- questions
+- currentQuestionIndex
+- remainingSeconds (timer)
+- answersMap (keyed by questionId)
 
-## Deploy on Vercel
+TIMER:
+- Start countdown from remainingSeconds
+- Decrement every second
+- When time reaches 0:
+  - Auto-submit exam (NO confirmation)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+QUESTION TYPES:
+1. MCQ (single correct)
+   - Radio buttons
+   - Only one option selectable
+   - Payload:
+     selectedOptionIds: [optionId]
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. MCQ (multiple correct)
+   - Checkboxes
+   - Multiple selectable
+   - Payload:
+     selectedOptionIds: [optionId1, optionId2]
+
+3. Numerical
+   - Number input
+   - Payload:
+     numericalAnswer: number
+
+QUESTION PANEL:
+- Display all question numbers on RIGHT side
+- Clicking a number navigates to that question
+- Highlight current question
+
+CLEAR ANSWER:
+- Frontend-only action
+- Clears UI selection/input
+- Does NOT call backend
+- Clearing is persisted ONLY when Save & Next is clicked
+
+SAVE & NEXT:
+- Call:
+  POST /api/exam-attempt/:examId/save
+- Payload rules:
+  - MCQ cleared → selectedOptionIds: []
+  - Numerical cleared → backend-accepted default
+- On success:
+  - Move to next question
+
+SUBMIT EXAM:
+- Manual submit:
+  - Show confirmation modal
+  - On confirm:
+    POST /api/exam-attempt/:examId
+- Auto submit:
+  - Triggered by timer end
+  - NO confirmation
+- After submit:
+  - Redirect to /dashboard
+
+====================================================
+IMPORTANT RULES
+====================================================
+- Exam must be refresh-safe
+- Saved answers must restore on reload
+- Do NOT block exams for profile completion
+- Do NOT add backend logic or assumptions
+- Keep UI minimal and exam-focused
+- Prefer editing existing files over creating new ones
+
+====================================================
+GOAL
+====================================================
+Implement all pages and logic cleanly, predictably,
+and strictly aligned with the backend APIs and flows above.
