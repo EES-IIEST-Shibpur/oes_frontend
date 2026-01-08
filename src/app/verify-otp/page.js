@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiFetch } from "../../lib/api";
 import styles from "./verify-otp.module.css";
@@ -8,6 +8,14 @@ import styles from "./verify-otp.module.css";
 const RESEND_DELAY = 30;
 
 export default function VerifyOTP() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VerifyOTPComponent />
+    </Suspense>
+  );
+}
+
+function VerifyOTPComponent() {
   const router = useRouter();
   const params = useSearchParams();
   const email = params.get("email") || "";
