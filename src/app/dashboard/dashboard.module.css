@@ -440,3 +440,60 @@
     justify-content: center;
   }
 }
+
+/* Live Exan Skeleton */
+.skeletonBase {
+  background: #f3f4f6;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeletonBase::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+  animation: skeletonShimmer 1.5s infinite;
+}
+
+@keyframes skeletonShimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Skeleton Elements */
+.skeletonBadge {
+  height: 20px;
+  width: 60px;
+  margin-bottom: 16px;
+}
+
+.skeletonTitle {
+  height: 20px;
+  width: 70%;
+  margin-bottom: 20px;
+}
+
+.skeletonDetail {
+  height: 16px;
+  width: 60%;
+  margin-bottom: 10px;
+}
+
+.skeletonButton {
+  height: 38px;
+  width: 100%;
+  margin-top: 20px;
+  border-radius: 8px;
+}
+
+/* Apply base */
+.skeletonBadge,
+.skeletonTitle,
+.skeletonDetail,
+.skeletonButton {
+  composes: skeletonBase;
+}

@@ -154,7 +154,7 @@ export default function ExamPage() {
     if (!window.confirm("Submit exam? You cannot change answers after submission.")) return;
 
     try {
-      const res = await apiFetch(`/api/exam-attempt/${examId}`, { method: "POST" });
+      const res = await apiFetch(`/api/exam-attempt/${examId}/submit`, { method: "POST" });
       if (res?.data?.success) router.push("/dashboard");
     } catch (err) {
       console.error("Submit failed", err);
@@ -163,7 +163,7 @@ export default function ExamPage() {
 
   const autoSubmit = async () => {
     try {
-      await apiFetch(`/api/exam-attempt/${examId}`, { method: "POST" });
+      await apiFetch(`/api/exam-attempt/${examId}/submit`, { method: "POST" });
     } finally {
       router.push("/dashboard");
     }

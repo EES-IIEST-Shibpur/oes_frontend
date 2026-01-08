@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "../../lib/api";
 import styles from "./dashboard.module.css";
+import LiveExamSkeleton from "@/components/skeletons/LiveExamSkeleton";
 
 export default function Dashboard() {
   const router = useRouter();
 
   const [user, setUser] = useState(null);
   const [liveExams, setLiveExams] = useState([]);
+  const [loadingExams, setLoadingExams] = useState(false);
   const [upcomingExams, setUpcomingExams] = useState([]);
 
   useEffect(() => {
@@ -32,12 +34,16 @@ export default function Dashboard() {
 
   const fetchLiveExams = async () => {
     try {
+      setLoadingExams(true);
       const res = await apiFetch("/api/exam/live");
       if (res?.data?.success) {
         setLiveExams(res.data.exams || []);
       }
     } catch (err) {
       console.error("Failed to fetch live exams", err);
+    }
+    finally{
+      setLoadingExams(false);
     }
   };
 
@@ -161,7 +167,10 @@ export default function Dashboard() {
             <span className={styles.badge}>{liveExams.length} Available</span>
           </div>
 
-          {liveExams.length === 0 ? (
+          {loadingExams?(
+            <LiveExamSkeleton/>
+          ):(
+            liveExams.length === 0 ? (
             <div className={styles.emptyState}>
               <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e0" strokeWidth="1.5">
                 <path d="M9 11l3 3L22 4" />
@@ -214,6 +223,7 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
+          )
           )}
         </section>
 
