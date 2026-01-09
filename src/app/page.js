@@ -136,6 +136,7 @@ export default function Home() {
           <div className={styles.footerSection}>
             <h4>Quick Links</h4>
             <ul>
+              <li><a href="/admin/login">Admin Login</a></li>
               <li><a href="/about">About Us</a></li>
               <li><a href="/tests">Browse Tests</a></li>
               <li><a href="/faq">FAQ</a></li>
