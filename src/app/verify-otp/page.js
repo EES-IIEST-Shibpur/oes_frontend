@@ -3,7 +3,9 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiFetch } from "../../lib/api";
-import styles from "./verify-otp.module.css";
+import { Mail, Clock } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const RESEND_DELAY = 30;
 
@@ -86,44 +88,71 @@ function VerifyOTPComponent() {
   };
 
   return (
-    <div className={styles.container}>
-      <form className={styles.card} onSubmit={handleSubmit}>
-        <h2 className={styles.title}>Verify OTP</h2>
+    <main className="min-h-screen flex flex-col bg-gray-50">
+      <Navbar />
+      
+      <div className="flex flex-1 items-center justify-center px-6 py-20">
+        <form 
+          onSubmit={handleSubmit}
+          className="w-full max-w-sm bg-white border rounded-xl shadow p-8 space-y-5"
+        >
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-full bg-[var(--color-primary-light)] flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-8 h-8 text-[var(--color-primary-text)]" />
+            </div>
+            <h2 className="text-2xl font-semibold">Verify OTP</h2>
+          </div>
 
-        <p className={styles.info}>
-          OTP sent to <strong>{email}</strong>
-        </p>
+          <p className="text-center text-sm text-gray-600">
+            OTP sent to <strong>{email}</strong>
+          </p>
 
-        {error && <p className={styles.error}>{error}</p>}
-
-        <input
-          className={styles.input}
-          placeholder="Enter 6-digit OTP"
-          value={otp}
-          onChange={(e) => setOtp(e.target.value)}
-          maxLength={6}
-          required
-        />
-
-        <button className={styles.button} type="submit" disabled={loading}>
-          {loading ? "Verifying..." : "Verify"}
-        </button>
-
-        <div className={styles.resendBox}>
-          {resendTimer > 0 ? (
-            <span className={styles.timer}>Resend in {resendTimer}s</span>
-          ) : (
-            <button
-              type="button"
-              onClick={handleResend}
-              disabled={resending}
-              className={styles.resendBtn}
-            >
-              {resending ? "Sending..." : "Resend OTP"}
-            </button>
+          {error && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2 text-center">
+              {error}
+            </p>
           )}
-        </div>
-      </form>
-    </div>
+
+          <input
+            type="text"
+            placeholder="Enter 6-digit OTP"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            maxLength={6}
+            required
+            className="w-full rounded-lg border px-3 py-2 text-sm text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            style={{ backgroundColor: "var(--color-primary)" }}
+            className="w-full text-sm font-medium rounded-lg py-2 transition text-gray-900 hover:opacity-90 disabled:opacity-50"
+          >
+            {loading ? "Verifying..." : "Verify"}
+          </button>
+
+          <div className="text-center">
+            {resendTimer > 0 ? (
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                <Clock className="w-4 h-4" />
+                <span>Resend in {resendTimer}s</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending}
+                className="text-sm text-[var(--color-primary-text)] hover:underline disabled:opacity-50"
+              >
+                {resending ? "Sending..." : "Resend OTP"}
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+      
+      <Footer />
+    </main>
   );
 }

@@ -3,6 +3,9 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { apiFetch } from "../../lib/api";
+import { CheckCircle, XCircle, Loader } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export default function VerifyEmailPage() {
   return (
@@ -76,50 +79,66 @@ function VerifyEmail() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-4">
-            <div className="max-w-md w-full border rounded-lg p-6 text-center">
-                {status === "loading" && (
-                    <>
-                        <h1 className="text-xl font-semibold mb-2">Verifying Email</h1>
-                        <p>Please wait while we verify your email...</p>
-                    </>
-                )}
+        <main className="min-h-screen flex flex-col bg-gray-50">
+            <Navbar />
+            
+            <div className="flex flex-1 items-center justify-center px-6 py-20">
+                <div className="w-full max-w-md bg-white border rounded-xl shadow p-8 text-center">
+                    {status === "loading" && (
+                        <>
+                            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                                <Loader className="w-8 h-8 text-blue-600 animate-spin" />
+                            </div>
+                            <h1 className="text-2xl font-semibold mb-2">Verifying Email</h1>
+                            <p className="text-gray-600">Please wait while we verify your email...</p>
+                        </>
+                    )}
 
-                {status === "success" && (
-                    <>
-                        <h1 className="text-xl font-semibold mb-2">Email Verified</h1>
-                        <p>{message}</p>
-                        <p className="mt-3 text-sm">Redirecting to login...</p>
-                    </>
-                )}
+                    {status === "success" && (
+                        <>
+                            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                                <CheckCircle className="w-8 h-8 text-green-600" />
+                            </div>
+                            <h1 className="text-2xl font-semibold mb-2">Email Verified</h1>
+                            <p className="text-gray-600">{message}</p>
+                            <p className="mt-3 text-sm text-gray-500">Redirecting to login...</p>
+                        </>
+                    )}
 
-                {status === "error" && (
-                    <>
-                        <h1 className="text-xl font-semibold mb-2">Verification Failed</h1>
-                        <p className="mb-4">{message}</p>
+                    {status === "error" && (
+                        <>
+                            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                                <XCircle className="w-8 h-8 text-red-600" />
+                            </div>
+                            <h1 className="text-2xl font-semibold mb-2">Verification Failed</h1>
+                            <p className="text-gray-600 mb-6">{message}</p>
 
-                        <div className="text-left">
-                            <label className="block text-sm mb-1">
-                                Enter your email to resend verification link
-                            </label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="w-full border px-3 py-2 rounded mb-3"
-                                placeholder="you@example.com"
-                            />
-                            <button
-                                onClick={resendVerification}
-                                disabled={resending}
-                                className="w-full bg-black text-white py-2 rounded disabled:opacity-50"
-                            >
-                                {resending ? "Sending..." : "Resend Verification Email"}
-                            </button>
-                        </div>
-                    </>
-                )}
+                            <div className="space-y-3 text-left">
+                                <label className="block text-sm text-gray-700">
+                                    Enter your email to resend verification link
+                                </label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                                    placeholder="you@example.com"
+                                />
+                                <button
+                                    onClick={resendVerification}
+                                    disabled={resending}
+                                    style={{ backgroundColor: "var(--color-primary)" }}
+                                    className="w-full py-2 rounded-lg text-sm font-medium text-gray-900 hover:opacity-90 disabled:opacity-50"
+                                >
+                                    {resending ? "Sending..." : "Resend Verification Email"}
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
-        </div>
+            
+            <Footer />
+        </main>
     );
 }

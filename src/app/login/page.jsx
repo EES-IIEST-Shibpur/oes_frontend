@@ -1,0 +1,144 @@
+"use client";
+
+import { useState, useEffect, useContext } from "react";
+import { useRouter } from "next/navigation";
+import { apiFetch } from "../../lib/api";
+import { Mail, Key, ArrowLeft } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { AuthContext } from "@/context/AuthContext";
+
+export default function Login() {
+  const router = useRouter();
+  const { login } = useContext(AuthContext);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && localStorage.getItem("token")) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email.includes("@")) {
+      setError("Enter a valid email.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await apiFetch("/api/auth/login", {
+        method: "POST",
+        body: { email, password },
+      });
+
+      if (res?.status === 200 && res?.data?.accessToken && res?.data?.user) {
+        // Use user data from login response
+        const userData = res.data.user;
+        console.log("Logged in user data:", userData);
+        
+        // Use AuthContext login to set both token and userData
+        login(res.data.accessToken, userData);
+        router.push("/dashboard");
+      } else {
+        setError(res?.data?.message || "Invalid credentials.");
+      }
+    } catch (err) {
+      setError("Login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <main className="min-h-screen flex flex-col bg-gray-50">
+      <Navbar />
+
+      <div className="flex flex-1 items-center justify-center px-6 py-20">
+        {/* Back Button */}
+        <div className="absolute top-20 left-4">
+          <button
+            onClick={() => router.push('/')}
+            className="mb-4 text-sm underline text-gray-700"
+          >
+            <ArrowLeft/>
+          </button>
+
+        </div>
+        <form
+          onSubmit={handleSubmit}
+          className="w-full max-w-sm bg-white border rounded-xl shadow p-8 space-y-5"
+        >
+          {/* <Image src="/images/EES_Logo.png" alt="Welcome Image" width={100} height={50} /> */}
+          <h2 className="text-2xl font-semibold text-center">Welcome Back</h2>
+
+          {error && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2 text-center">
+              {error}
+            </p>
+          )}
+
+          <div className="space-y-1">
+            <label className="text-sm text-gray-700">Email</label>
+            <div className="relative">
+              <Mail className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
+              <input
+                type="email"
+                required
+                value={email}
+                autoComplete="email"
+                placeholder="Enter your email"
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm text-gray-700">Password</label>
+            <div className="relative">
+              <Key className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
+              <input
+                type="password"
+                required
+                value={password}
+                autoComplete="current-password"
+                placeholder="Enter your password"
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            style={{ backgroundColor: "var(--color-primary)" }}
+            className="w-full text-sm font-medium rounded-lg py-2 transition text-gray-900"
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+
+          <div className="flex justify-between text-xs text-gray-600">
+            <a href="/signup" className="underline hover:text-gray-900">Sign up</a>
+            <a href="/forgot-password" className="underline hover:text-gray-900">Forgot password?</a>
+          </div>
+        </form>
+      </div>
+
+      <Footer />
+    </main>
+  );
+}

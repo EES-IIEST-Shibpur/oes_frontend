@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "../../lib/api";
-import styles from "./profile.module.css";
+import { Edit, Save, X, User } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const COURSE_MAP = {
   BTECH: "B.Tech",
@@ -73,11 +75,11 @@ export default function ProfilePage() {
       const data = res?.data || {};
       const mapped = {
         fullName: data.fullName || "",
-        course: data.course || "",
-        department: data.department || "",
-        year: data.year || "",
-        semester: data.semester || "",
-        enrollmentNumber: data.enrollmentNumber || "",
+        course: data.profile.course || "",
+        department: data.profile.department || "",
+        year: data.profile.year || "",
+        semester: data.profile.semester || "",
+        enrollmentNumber: data.profile.enrollmentNumber || "",
       };
       setForm(mapped);
       setOriginalForm(mapped);
@@ -140,7 +142,15 @@ export default function ProfilePage() {
   };
 
   if (loading) {
-    return <p className={styles.loading}>Loading profile...</p>;
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   const displayValue = (field, value) => {
@@ -159,91 +169,184 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>Candidate Profile</h1>
-      <p className={styles.subtitle}>
-        Completing your profile helps generate accurate exam reports. It is not
-        mandatory to attempt exams.
-      </p>
-
-      {error && <p className={styles.error}>{error}</p>}
-
-      {!editing && (
-        <div className={styles.viewMode}>
-          <p><strong>Full Name:</strong> {displayValue("fullName", form.fullName)}</p>
-          <p><strong>Course:</strong> {displayValue("course", form.course)}</p>
-          <p><strong>Department:</strong> {displayValue("department", form.department)}</p>
-          <p><strong>Year:</strong> {displayValue("year", form.year)}</p>
-          <p><strong>Semester:</strong> {displayValue("semester", form.semester)}</p>
-          <p><strong>Enrollment Number:</strong> {displayValue("enrollmentNumber", form.enrollmentNumber)}</p>
-
-          <button
-            className={styles.editBtn}
-            onClick={() => setEditing(true)}
-          >
-            Edit Profile
-          </button>
-        </div>
-      )}
-
-      {editing && (
-        <div className={styles.form}>
-          <input
-            name="fullName"
-            placeholder="Full Name"
-            value={form.fullName}
-            onChange={handleChange}
-          />
-
-          <select name="course" value={form.course} onChange={handleChange}>
-            {Object.entries(COURSE_MAP).map(([key, label]) => (
-              <option key={key} value={key}>{label}</option>
-            ))}
-          </select>
-
-          <select name="department" value={form.department} onChange={handleChange}>
-            {Object.entries(DEPT_MAP).map(([key, label]) => (
-              <option key={key} value={key}>{label}</option>
-            ))}
-          </select>
-
-          <select name="year" value={form.year} onChange={handleChange}>
-            {Object.entries(YEAR_MAP).map(([key, label]) => (
-              <option key={key} value={key}>{label}</option>
-            ))}
-          </select>
-
-          <select name="semester" value={form.semester} onChange={handleChange}>
-            {Object.entries(SEM_MAP).map(([key, label]) => (
-              <option key={key} value={key}>{label}</option>
-            ))}
-          </select>
-
-          <input
-            name="enrollmentNumber"
-            placeholder="Enrollment Number e.g. 2023EEB005"
-            value={form.enrollmentNumber}
-            onChange={handleChange}
-          />
-
-          <div className={styles.buttonRow}>
-            <button
-              className={styles.saveBtn}
-              onClick={saveProfile}
-              disabled={saving}
-            >
-              {saving ? "Saving..." : "Save Profile"}
-            </button>
-            <button
-              className={styles.cancelBtn}
-              onClick={cancelEdit}
-              disabled={saving}
-            >
-              Cancel
-            </button>
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Navbar />
+      
+      <div className="flex-1 max-w-3xl mx-auto px-6 py-12 w-full">
+        <div className="bg-white rounded-xl shadow-sm border p-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-12 h-12 rounded-full bg-[var(--color-primary-light)] flex items-center justify-center">
+              <User className="w-6 h-6 text-[var(--color-primary-text)]" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900">Candidate Profile</h1>
           </div>
+          
+          <p className="text-gray-600 mb-8">
+            Completing your profile helps generate accurate exam reports. It is not
+            mandatory to attempt exams.
+          </p>
+
+          {error && (
+            <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+              {error}
+            </div>
+          )}
+
+          {!editing && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Full Name</p>
+                  <p className="text-gray-900 font-medium">{displayValue("fullName", form.fullName) || "Not set"}</p>
+                </div>
+                
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Course</p>
+                  <p className="text-gray-900 font-medium">{displayValue("course", form.course) || "Not set"}</p>
+                </div>
+                
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Department</p>
+                  <p className="text-gray-900 font-medium">{displayValue("department", form.department) || "Not set"}</p>
+                </div>
+                
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Year</p>
+                  <p className="text-gray-900 font-medium">{displayValue("year", form.year) || "Not set"}</p>
+                </div>
+                
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Semester</p>
+                  <p className="text-gray-900 font-medium">{displayValue("semester", form.semester) || "Not set"}</p>
+                </div>
+                
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Enrollment Number</p>
+                  <p className="text-gray-900 font-medium">{displayValue("enrollmentNumber", form.enrollmentNumber) || "Not set"}</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setEditing(true)}
+                style={{ backgroundColor: "var(--color-primary)" }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-900 hover:opacity-90 transition"
+              >
+                <Edit className="w-4 h-4" />
+                Edit Profile
+              </button>
+            </div>
+          )}
+
+          {editing && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Full Name</label>
+                <input
+                  name="fullName"
+                  placeholder="Full Name"
+                  value={form.fullName}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Course</label>
+                <select 
+                  name="course" 
+                  value={form.course} 
+                  onChange={handleChange}
+                  className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                >
+                  <option value="">Select Course</option>
+                  {Object.entries(COURSE_MAP).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Department</label>
+                <select 
+                  name="department" 
+                  value={form.department} 
+                  onChange={handleChange}
+                  className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                >
+                  <option value="">Select Department</option>
+                  {Object.entries(DEPT_MAP).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Year</label>
+                <select 
+                  name="year" 
+                  value={form.year} 
+                  onChange={handleChange}
+                  className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                >
+                  <option value="">Select Year</option>
+                  {Object.entries(YEAR_MAP).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Semester</label>
+                <select 
+                  name="semester" 
+                  value={form.semester} 
+                  onChange={handleChange}
+                  className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                >
+                  <option value="">Select Semester</option>
+                  {Object.entries(SEM_MAP).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Enrollment Number</label>
+                <input
+                  name="enrollmentNumber"
+                  placeholder="Enrollment Number e.g. 2023EEB005"
+                  value={form.enrollmentNumber}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={saveProfile}
+                  disabled={saving}
+                  style={{ backgroundColor: "var(--color-primary)" }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-900 hover:opacity-90 transition disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4" />
+                  {saving ? "Saving..." : "Save Profile"}
+                </button>
+                
+                <button
+                  onClick={cancelEdit}
+                  disabled={saving}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 hover:bg-gray-100 transition disabled:opacity-50"
+                >
+                  <X className="w-4 h-4" />
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
+      
+      <Footer />
     </div>
   );
 }

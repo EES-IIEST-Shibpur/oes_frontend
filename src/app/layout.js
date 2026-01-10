@@ -1,4 +1,6 @@
 import { AdminAuthProvider } from '@/context/AdminAuthContext';
+import { AuthProvider } from '@/context/AuthContext';
+import './globals.css';
 
 export const metadata = {
   title: 'AptiCrack | Online Examination System',
@@ -8,10 +10,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, fontFamily: 'Trebuchet MS', backgroundColor: '#f5f5f5' }}>
-        <AdminAuthProvider>
-          {children}
-        </AdminAuthProvider>
+      <body>
+        <AuthProvider>
+          <AdminAuthProvider>
+            {children}
+          </AdminAuthProvider>
+        </AuthProvider>
       </body>
     </html>
   );

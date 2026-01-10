@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "../../lib/api";
-import styles from "./signup.module.css";
+import { User, Mail, Key } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export default function Signup() {
   const router = useRouter();
@@ -43,52 +45,96 @@ export default function Signup() {
   };
 
   return (
-    <div className={styles.container}>
-      <form className={styles.card} onSubmit={handleSubmit}>
-        <h2 className={styles.title}>Create Account</h2>
+    <main className="min-h-screen flex flex-col bg-gray-50">
+      <Navbar />
 
-        {error && <p className={styles.error}>{error}</p>}
+      <div className="flex flex-1 items-center justify-center px-6 py-20">
+        <form 
+          onSubmit={handleSubmit}
+          className="w-full max-w-sm bg-white border rounded-xl shadow p-8 space-y-5"
+        >
+          <h2 className="text-2xl font-semibold text-center">Create Account</h2>
 
-        {success && <p className={styles.success}>{success}</p>}
+          {error && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2 text-center">
+              {error}
+            </p>
+          )}
 
-        {!success && (
-          <>
-            <input
-              className={styles.input}
-              placeholder="Full name"
-              value={fullName}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
+          {success && (
+            <p className="text-sm text-green-600 bg-green-50 border border-green-200 rounded px-3 py-2 text-center">
+              {success}
+            </p>
+          )}
 
-            <input
-              className={styles.input}
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+          {!success && (
+            <>
+              <div className="space-y-1">
+                <label className="text-sm text-gray-700">Full Name</label>
+                <div className="relative">
+                  <User className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    placeholder="Enter your full name"
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+              </div>
 
-            <input
-              className={styles.input}
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+              <div className="space-y-1">
+                <label className="text-sm text-gray-700">Email</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    placeholder="Enter your email"
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+              </div>
 
-            <button className={styles.button} type="submit" disabled={loading}>
-              {loading ? "Submitting..." : "Signup"}
-            </button>
-          </>
-        )}
+              <div className="space-y-1">
+                <label className="text-sm text-gray-700">Password</label>
+                <div className="relative">
+                  <Key className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    placeholder="Enter your password"
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+              </div>
 
-        <p className={styles.footerText}>
-          Already have an account? <a href="/login">Login</a>
-        </p>
-      </form>
-    </div>
+              <button
+                type="submit"
+                disabled={loading}
+                style={{ backgroundColor: "var(--color-primary)" }}
+                className="w-full text-sm font-medium rounded-lg py-2 transition text-gray-900 hover:opacity-90 disabled:opacity-50"
+              >
+                {loading ? "Submitting..." : "Signup"}
+              </button>
+            </>
+          )}
+
+          <div className="text-center text-xs text-gray-600">
+            Already have an account?{" "}
+            <a href="/login" className="underline hover:text-gray-900">
+              Login
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <Footer />
+    </main>
   );
 }
