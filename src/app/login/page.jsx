@@ -126,7 +126,7 @@ export default function Login() {
             type="submit"
             disabled={loading}
             style={{ backgroundColor: "var(--color-primary)" }}
-            className="w-full text-sm font-medium rounded-lg py-2 transition text-gray-900"
+            className="w-full text-sm font-medium rounded-lg py-2 transition text-gray-900 cursor-pointer"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
@@ -138,7 +138,6 @@ export default function Login() {
         </form>
       </div>
 
-      <Footer />
     </main>
   );
 }

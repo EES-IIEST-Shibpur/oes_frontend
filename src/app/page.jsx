@@ -16,7 +16,7 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <main className="flex flex-col min-h-screen bg-gray-50 text-gray-900">
+    <main className="flex flex-col min-h-screen bg-[#ECFAE5] from-blue-50 via-white to-green-50 text-gray-900">
       <Navbar />
 
       {/* HERO */}
@@ -31,14 +31,14 @@ export default function Home() {
           </h2>
 
           <p className="mt-4 text-gray-600 max-w-xl mx-auto">
-            Designed to enhance quantitative ability, logical reasoning, and analytical thinking. 
+            Designed to enhance quantitative ability, logical reasoning, and analytical thinking.
             Ideal for campus placements, competitive exams, and technical screenings.
           </p>
 
           <div className="mt-6 flex gap-3 justify-center">
             <button
               onClick={() => router.push("/signup")}
-              className="px-5 py-3 rounded-lg bg-(var(--color-primary)) text-white text-sm font-medium hover:bg-(var(--color-primary-hover)) transition"
+              className="px-5 py-3 rounded-lg bg-[#75B06F] text-white text-sm font-medium hover:bg-(var(--color-primary-hover)) transition"
             >
               Start Free Practice
             </button>
@@ -58,19 +58,19 @@ export default function Home() {
           <div>
             <h3 className="text-2xl font-semibold mb-3">What is AptiCrack</h3>
             <p className="text-gray-600 leading-relaxed">
-              AptiCrack is focused on improving students' core aptitude skills including quantitative ability, 
-              logical reasoning, and analytical thinking. These skills are essential for campus placements, 
+              AptiCrack is focused on improving students' core aptitude skills including quantitative ability,
+              logical reasoning, and analytical thinking. These skills are essential for campus placements,
               competitive exams, and internship assessments.
             </p>
             <p className="mt-3 text-gray-600 leading-relaxed">
-              The sessions are structured with increasing difficulty under timed environments, encouraging 
+              The sessions are structured with increasing difficulty under timed environments, encouraging
               competitive participation across year groups.
             </p>
           </div>
           <div className="bg-white rounded-xl shadow-md p-6 border">
             <h4 className="text-lg font-semibold mb-2">Weekly Aptitude Sessions</h4>
             <p className="text-gray-600">
-              Conducted every Saturday to help students prepare consistently and track improvement. 
+              Conducted every Saturday to help students prepare consistently and track improvement.
               Focus areas include:
             </p>
             <ul className="mt-3 space-y-2 text-gray-700 text-sm list-disc list-inside">

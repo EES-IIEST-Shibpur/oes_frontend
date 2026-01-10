@@ -94,6 +94,10 @@ export default function Dashboard() {
     }
   };
 
+  const resumeExam = (examId) => {
+    router.push(`/exam/${examId}`);
+  };
+
   const handleLogout = () => {
     logout();
     router.push("/login");
@@ -115,103 +119,74 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
       <Navbar />
 
-      {/* Welcome Section */}
-      <div className="border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Welcome back, {userName}
+      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full">
+        {/* Header */}
+        <div className="mb-10">
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">
+            {userName}'s Dashboard
           </h1>
-          <p className="text-gray-600">
-            Manage and complete your exams efficiently
-          </p>
-          
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-            <div className="flex items-start gap-4 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
-              <div className="p-2.5 rounded-lg" style={{ backgroundColor: "var(--color-primary-light)" }}>
-                <Zap className="w-5 h-5" style={{ color: "var(--color-primary-text)" }} />
-              </div>
-              <div>
-                <p className="text-2xl font-semibold text-gray-900">{liveExams.length}</p>
-                <p className="text-sm text-gray-600">Live Exams</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-4 p-4 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
-              <div className="p-2.5 rounded-lg" style={{ backgroundColor: "var(--color-primary-light)" }}>
-                <Calendar className="w-5 h-5" style={{ color: "var(--color-primary-text)" }} />
-              </div>
-              <div>
-                <p className="text-2xl font-semibold text-gray-900">{upcomingExams.length}</p>
-                <p className="text-sm text-gray-600">Upcoming Exams</p>
-              </div>
-            </div>
+          <p className="text-gray-500 text-sm">View and manage your exams</p>
+        </div>
+
+        {/* Stats Bar */}
+        <div className="grid grid-cols-2 gap-4 mb-10">
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div className="text-3xl font-bold text-gray-900 mb-1">{liveExams.length}</div>
+            <div className="text-sm text-gray-500">Live Exams</div>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div className="text-3xl font-bold text-gray-900 mb-1">{upcomingExams.length}</div>
+            <div className="text-sm text-gray-500">Upcoming</div>
           </div>
         </div>
-      </div>
 
-      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-12 w-full">
-        {/* Live Exams Section */}
-        {loadingExams ? (
-          <div className="mb-16">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <div className="w-1 h-6 rounded-full" style={{ backgroundColor: "var(--color-primary)" }}></div>
-              Live Exams
-            </h2>
+        {/* Live Exams */}
+        <div className="mb-12">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Live Exams
+          </h2>
+
+          {loadingExams ? (
             <DashboardSkeleton />
-          </div>
-        ) : liveExams.length === 0 ? (
-          <div className="mb-16">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <div className="w-1 h-6 rounded-full" style={{ backgroundColor: "var(--color-primary)" }}></div>
-              Live Exams
-            </h2>
-            <div className="text-center py-12 border border-gray-200 rounded-lg">
-              <Zap className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-600 font-medium">No live exams available</p>
-              <p className="text-sm text-gray-500 mt-1">Check back later for new exams</p>
+          ) : liveExams.length === 0 ? (
+            <div className="bg-white rounded-xl p-12 text-center border border-gray-200">
+              <div className="text-gray-400 mb-2">No live exams</div>
+              <p className="text-sm text-gray-500">Check back later</p>
             </div>
-          </div>
-        ) : (
-          <div className="mb-16">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <div className="w-1 h-6 rounded-full" style={{ backgroundColor: "var(--color-primary)" }}></div>
-              Live Exams
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {liveExams.map((exam) => (
-                <ExamCard 
-                  key={exam.id} 
-                  exam={exam} 
+                <ExamCard
+                  key={exam.id}
+                  exam={exam}
                   isLive={true}
-                  onStart={startExam}
+                  onStart={exam.hasAttempt && exam.attemptStatus === "IN_PROGRESS" ? resumeExam : startExam}
                 />
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Upcoming Exams Section */}
+        {/* Upcoming Exams */}
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-            <div className="w-1 h-6 rounded-full" style={{ backgroundColor: "var(--color-primary)" }}></div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
             Upcoming Exams
           </h2>
 
           {upcomingExams.length === 0 ? (
-            <div className="text-center py-12 border border-gray-200 rounded-lg">
-              <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-600 font-medium">No upcoming exams scheduled</p>
+            <div className="bg-white rounded-xl p-12 text-center border border-gray-200">
+              <div className="text-gray-400 mb-2">No upcoming exams</div>
+              <p className="text-sm text-gray-500">All caught up</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {upcomingExams.map((exam) => (
-                <ExamCard 
-                  key={exam.id} 
-                  exam={exam} 
+                <ExamCard
+                  key={exam.id}
+                  exam={exam}
                   isLive={false}
                 />
               ))}
@@ -236,67 +211,82 @@ function ExamCard({ exam, isLive, onStart }) {
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all flex flex-col overflow-hidden">
-      {/* Badge */}
-      <div className="px-6 pt-6 pb-0">
-        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium w-fit ${
-          isLive 
-            ? "bg-blue-50 text-blue-700" 
-            : "bg-gray-100 text-gray-700"
-        }`}>
-          <span className={`w-2 h-2 rounded-full ${isLive ? "bg-blue-600" : "bg-gray-400"}`}></span>
-          {isLive ? "LIVE" : "UPCOMING"}
-        </div>
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+      {/* Title */}
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{exam.title}</h3>
+        <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full ${isLive
+            ? "bg-green-100 text-green-700"
+            : "bg-gray-100 text-gray-600"
+          }`}>
+          {isLive ? "Live" : "Upcoming"}
+        </span>
       </div>
 
-      {/* Content */}
-      <div className="px-6 pt-4 pb-6 flex-1 flex flex-col">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 line-clamp-2">{exam.title}</h3>
-        
-        {/* Details */}
-        <div className="space-y-2.5 mb-6 flex-1">
-          {exam.durationMinutes && (
-            <div className="flex items-center gap-3 text-sm text-gray-600">
-              <Clock className="w-4 h-4 text-gray-400 shrink-0" />
-              <span>{exam.durationMinutes} minutes</span>
-            </div>
-          )}
-          
-          {exam.totalQuestions && (
-            <div className="flex items-center gap-3 text-sm text-gray-600">
-              <FileText className="w-4 h-4 text-gray-400 shrink-0" />
-              <span>{exam.totalQuestions} questions</span>
-            </div>
-          )}
+      {/* Details */}
+      <div className="space-y-2 mb-5 text-sm text-gray-600">
+        {exam.durationMinutes && (
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            <span>{exam.durationMinutes} min</span>
+          </div>
+        )}
 
-          {!isLive && exam.startTime && (
-            <div className="flex items-center gap-3 text-sm text-gray-600">
-              <Calendar className="w-4 h-4 text-gray-400 shrink-0" />
-              <span>{formatDate(exam.startTime)}</span>
-            </div>
-          )}
-        </div>
+        {exam.totalQuestions && (
+          <div className="flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            <span>{exam.totalQuestions} questions</span>
+          </div>
+        )}
 
-        {/* Button */}
-        {isLive ? (
+        {!isLive && exam.startTime && (
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4" />
+            <span>{formatDate(exam.startTime)}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Action */}
+      {isLive ? (
+        exam.hasAttempt ? (
+          exam.attemptStatus === "IN_PROGRESS" ? (
+            <button
+              onClick={() => onStart(exam.id)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90 cursor-pointer"
+              style={{ backgroundColor: "#75B06F" }}
+            >
+              <Play className="w-4 h-4" />
+              Resume Exam
+            </button>
+          ) : (
+            <button
+              disabled
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-gray-200 text-gray-500 cursor-not-allowed"
+            >
+              <FileText className="w-4 h-4" />
+              Already Attempted
+            </button>
+          )
+        ) : (
           <button
             onClick={() => onStart(exam.id)}
-            style={{ backgroundColor: "var(--color-primary)" }}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-900 hover:opacity-85 transition-opacity active:scale-95"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90 cursor-pointer"
+            style={{ backgroundColor: "#75B06F" }}
           >
             <Play className="w-4 h-4" />
             Start Exam
           </button>
-        ) : (
-          <button
-            disabled
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed"
-          >
-            <Lock className="w-4 h-4" />
-            Not Available
-          </button>
-        )}
-      </div>
+        )
+      ) : (
+        <button
+          disabled
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed"
+        >
+          <Lock className="w-4 h-4" />
+          Locked
+        </button>
+      )}
     </div>
   );
 }

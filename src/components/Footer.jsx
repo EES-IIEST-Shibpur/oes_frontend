@@ -13,7 +13,6 @@ export default function Footer() {
           <ul className="mt-2 space-y-2 text-sm">
             <li><a href="/admin/login" className="hover:text-white">Admin Login</a></li>
             <li><a href="/about" className="hover:text-white">About</a></li>
-            <li><a href="/tests" className="hover:text-white">Tests</a></li>
             <li><a href="/faq" className="hover:text-white">FAQ</a></li>
             <li><a href="/contact" className="hover:text-white">Contact</a></li>
           </ul>

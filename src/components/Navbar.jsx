@@ -29,7 +29,7 @@ export default function Navbar() {
   }, [dropdownOpen]);
 
   return (
-    <header className="w-full border-b bg-white/70 backdrop-blur-sm sticky top-0 z-30">
+    <header className="w-full border-b bg-white/70 backdrop-blur-sm top-0 z-30">
       <div className="max-w-7xl mx-auto flex justify-between items-center py-4 px-6">
         <h1
           className="text-xl font-semibold tracking-tight cursor-pointer"
@@ -85,7 +85,7 @@ export default function Navbar() {
                         <button
                           onClick={() => {
                             logout();
-                            router.push('/login');
+                            router.push('/');
                             setDropdownOpen(false);
                           }}
                           className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition"
