@@ -3,7 +3,7 @@
 import { useContext, useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
-import { User, LayoutDashboard, LogIn, UserPlus, LogOut, ChevronDown } from 'lucide-react';
+import { User, LayoutDashboard, LogIn, UserPlus, LogOut, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function Navbar() {
   const router = useRouter();
@@ -48,15 +48,15 @@ export default function Navbar() {
                     <button
                       onClick={() => setDropdownOpen(!dropdownOpen)}
                       className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-white hover:opacity-90 transition cursor-pointer"
-                      style={{ backgroundColor: '#C5D89D' }}
+                      style={{ backgroundColor: '#75B06F' }}
                     >
                       <User className="w-4 h-4" />
-                      <ChevronDown className="w-4 h-4" />
+                      {dropdownOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                     </button>
 
                     {/* Dropdown Content */}
                     {dropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                      <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                         {/* Profile */}
                         <button
                           onClick={() => {
@@ -108,7 +108,7 @@ export default function Navbar() {
                   </button>
                   <button
                     onClick={() => router.push('/signup')}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] transition cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm bg-[#75B06F] text-white hover:bg-[var(--color-primary-hover)] transition cursor-pointer"
                   >
                     <UserPlus className="w-4 h-4" />
                     Signup
