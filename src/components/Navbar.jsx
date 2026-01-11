@@ -3,7 +3,7 @@
 import { useContext, useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
-import { User, LayoutDashboard, LogIn, UserPlus, LogOut, ChevronDown, ChevronUp } from 'lucide-react';
+import { User, LayoutDashboard, LogIn, UserPlus, LogOut, ChevronDown, ChevronUp, ChartColumn } from 'lucide-react';
 
 export default function Navbar() {
   const router = useRouter();
@@ -79,6 +79,18 @@ export default function Navbar() {
                         >
                           <LayoutDashboard className="w-4 h-4" />
                           Dashboard
+                        </button>
+                        
+                        {/* Results */}
+                        <button
+                          onClick={() => {
+                            router.push('/results');
+                            setDropdownOpen(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition border-b border-gray-100 cursor-pointer"
+                        >
+                          <ChartColumn className="w-4 h-4" />
+                          Results
                         </button>
 
                         {/* Logout */}

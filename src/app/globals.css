@@ -3,6 +3,7 @@
 :root {
   /* Theme Colors */
   --color-primary: #C5D89D;
+  --color-primary-main: #75B06F;
   --color-primary-hover: #B3C788;
   --color-primary-light: #E8F0DE;
   --color-primary-soft: #DDE9C8;

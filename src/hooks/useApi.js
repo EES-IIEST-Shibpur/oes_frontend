@@ -1,6 +1,8 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useContext } from 'react';
 import { apiFetch } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
+import { AuthContext } from '@/context/AuthContext';
 
 // ============ Auth Hooks ============
 export function useSignup() {
@@ -73,6 +75,7 @@ export function useResetPassword() {
 
 // ============ Profile Hooks ============
 export function useProfile() {
+  const { isAuthenticated, isLoading } = useContext(AuthContext);
   return useQuery({
     queryKey: ['profile'],
     queryFn: () =>
@@ -80,6 +83,7 @@ export function useProfile() {
         skipAuthRedirect: false,
       }),
     retry: 1,
+    enabled: !!isAuthenticated && !isLoading,
   });
 }
 
@@ -143,10 +147,20 @@ export function useSubmitExam() {
 }
 
 // ============ Results Hooks ============
-export function useExamResults(examAttemptId) {
+export function useMyAttempts() {
+  const { isAuthenticated, isLoading } = useContext(AuthContext);
   return useQuery({
-    queryKey: ['exam-results', examAttemptId],
-    queryFn: () => apiFetch(`/api/result/${examAttemptId}`),
-    enabled: !!examAttemptId,
+    queryKey: ['my-attempts'],
+    queryFn: () => apiFetch('/api/result'),
+    enabled: !!isAuthenticated && !isLoading,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+}
+
+export function useExamResults(examId) {
+  return useQuery({
+    queryKey: ['exam-results', examId],
+    queryFn: () => apiFetch(`/api/result/${examId}`),
+    enabled: !!examId,
   });
 }

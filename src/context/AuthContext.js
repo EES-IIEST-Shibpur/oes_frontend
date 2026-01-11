@@ -12,7 +12,20 @@ export function AuthProvider({ children }) {
 
   // Check authentication status on mount
   useEffect(() => {
-    checkAuth();
+    try {
+      const hasAuthFlag = typeof window !== 'undefined' &&
+        window.localStorage &&
+        window.localStorage.getItem('oes_auth') === '1';
+
+      if (hasAuthFlag) {
+        checkAuth();
+      } else {
+        setIsLoading(false);
+      }
+    } catch (e) {
+      // If localStorage unavailable, fall back to no-check
+      setIsLoading(false);
+    }
   }, []);
 
   const checkAuth = async () => {
@@ -47,6 +60,11 @@ export function AuthProvider({ children }) {
     // No need to store token - it's in httpOnly cookie
     setUser({ data: userData });
     setIsAuthenticated(true);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem('oes_auth', '1');
+      }
+    } catch {}
   }, []);
 
   const logout = useCallback(async () => {
@@ -62,6 +80,11 @@ export function AuthProvider({ children }) {
     
     setUser(null);
     setIsAuthenticated(false);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem('oes_auth');
+      }
+    } catch {}
   }, []);
 
   const value = {

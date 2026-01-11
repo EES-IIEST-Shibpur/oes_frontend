@@ -239,7 +239,7 @@ export default function ExamPage() {
       submitExamMutation.mutate(examId, {
         onSuccess: () => {
           setSavingError(null);
-          router.push("/dashboard");
+          router.push(`/results?examId=${examId}`);
         },
         onError: (err) => {
           console.error("Submit failed", err);
@@ -272,12 +272,12 @@ export default function ExamPage() {
     try {
       submitExamMutation.mutate(examId, {
         onSettled: () => {
-          router.push("/dashboard");
+          router.push(`/results?examId=${examId}`);
         },
         onError: (err) => {
           console.error("Auto-submit failed", err);
-          // Even if auto-submit fails, redirect to dashboard
-          router.push("/dashboard");
+          // Even if auto-submit fails, redirect to results page
+          router.push(`/results?examId=${examId}`);
         },
       });
     } catch (error) {
