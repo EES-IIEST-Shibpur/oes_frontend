@@ -65,7 +65,6 @@ export default function Login() {
       if (res?.status === 200 && res?.data?.user) {
         // Use user data from login response
         const userData = res.data.user;
-        console.log("Logged in user data:", userData);
         
         // Cookie is automatically set by backend, just update context
         login(userData);
