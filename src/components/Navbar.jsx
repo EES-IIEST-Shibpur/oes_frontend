@@ -108,7 +108,7 @@ export default function Navbar() {
                   </button>
                   <button
                     onClick={() => router.push('/signup')}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm bg-[#75B06F] text-white hover:bg-[var(--color-primary-hover)] transition cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm bg-[#75B06F] text-white hover:bg-(--color-primary-hover) transition cursor-pointer"
                   >
                     <UserPlus className="w-4 h-4" />
                     Signup

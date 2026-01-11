@@ -119,7 +119,7 @@ export default function Signup() {
                     value={fullName}
                     placeholder="Enter your full name"
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                    className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-primary)"
                   />
                 </div>
               </div>
@@ -134,7 +134,7 @@ export default function Signup() {
                     value={email}
                     placeholder="Enter your email"
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                    className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-primary)"
                   />
                 </div>
               </div>
@@ -149,7 +149,7 @@ export default function Signup() {
                     value={password}
                     placeholder="Enter your password"
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                    className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-primary)"
                   />
                 </div>
               </div>

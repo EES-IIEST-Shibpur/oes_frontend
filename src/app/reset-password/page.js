@@ -74,7 +74,7 @@ export default function ResetPassword() {
                         type="text"
                         placeholder="Enter OTP"
                         required
-                        className="w-full rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--color-primary)]"
+                        className="w-full rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:ring-(--color-primary)"
                         value={otp}
                         onChange={(e) => setOtp(e.target.value)}
                     />
@@ -85,7 +85,7 @@ export default function ResetPassword() {
                             type="password"
                             required
                             placeholder="New Password"
-                            className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--color-primary)]"
+                            className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:ring-(--color-primary)"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                         />
