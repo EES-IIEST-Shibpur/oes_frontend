@@ -17,10 +17,22 @@ export default function ForgotPassword() {
         e.preventDefault();
         setError("");
 
+        // Client-side validation
+        if (!email.trim()) {
+            setError("Email is required");
+            return;
+        }
+
+        if (!email.includes("@") || !email.includes(".")) {
+            setError("Please enter a valid email address");
+            return;
+        }
+
         try {
             const res = await apiFetch("/api/auth/forgot-password", {
                 method: "POST",
                 body: { email },
+                skipAuthRedirect: true,
             });
 
             if (res?.status === 200) {
@@ -28,10 +40,10 @@ export default function ForgotPassword() {
                 setSent(true);
                 router.push("/reset-password");
             } else {
-                setError(res?.data?.message || "Failed to send reset email.");
+                setError(res?.data?.message || "Failed to send reset email. Please try again.");
             }
         } catch (err) {
-            setError("Request failed.");
+            setError("Request failed. Please check your connection and try again.");
         }
     };
 

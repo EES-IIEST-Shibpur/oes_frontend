@@ -26,13 +26,24 @@ export default function Login() {
     e.preventDefault();
     setError("");
 
-    if (!email.includes("@")) {
-      setError("Enter a valid email.");
+    // Client-side validation
+    if (!email.trim()) {
+      setError("Email is required");
+      return;
+    }
+
+    if (!email.includes("@") || !email.includes(".")) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    if (!password) {
+      setError("Password is required");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      setError("Password must be at least 6 characters");
       return;
     }
 
@@ -42,6 +53,7 @@ export default function Login() {
       const res = await apiFetch("/api/auth/login", {
         method: "POST",
         body: { email, password },
+        skipAuthRedirect: true,
       });
 
       if (res?.status === 200 && res?.data?.accessToken && res?.data?.user) {
@@ -53,10 +65,14 @@ export default function Login() {
         login(res.data.accessToken, userData);
         router.push("/dashboard");
       } else {
-        setError(res?.data?.message || "Invalid credentials.");
+        // Display backend error message if available
+        const errorMessage = res?.data?.message || "Login failed. Please try again.";
+        setError(errorMessage);
       }
     } catch (err) {
-      setError("Login failed. Please try again.");
+      // Handle network errors or other issues
+      const errorMessage = err?.message || "Login failed. Please check your connection and try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

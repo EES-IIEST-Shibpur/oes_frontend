@@ -24,8 +24,19 @@ export default function ResetPassword() {
         e.preventDefault();
         setError("");
 
+        // Client-side validation
+        if (!otp.trim()) {
+            setError("OTP is required");
+            return;
+        }
+
+        if (!newPassword) {
+            setError("New password is required");
+            return;
+        }
+
         if (newPassword.length < 6) {
-            setError("Password must be at least 6 characters.");
+            setError("Password must be at least 6 characters long");
             return;
         }
 
@@ -33,16 +44,17 @@ export default function ResetPassword() {
             const res = await apiFetch("/api/auth/reset-password", {
                 method: "POST",
                 body: { email, otp, newPassword },
+                skipAuthRedirect: true,
             });
 
             if (res?.status === 200) {
                 sessionStorage.removeItem("resetEmail");
                 router.push("/login");
             } else {
-                setError(res?.data?.message || "Reset failed.");
+                setError(res?.data?.message || "Reset failed. Please try again.");
             }
         } catch (err) {
-            setError("Request failed.");
+            setError("Request failed. Please check your connection and try again.");
         }
     };
 

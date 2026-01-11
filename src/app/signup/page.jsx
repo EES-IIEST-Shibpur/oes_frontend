@@ -20,25 +20,65 @@ export default function Signup() {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+
+    // Client-side validation
+    if (!fullName.trim()) {
+      setError("Full name is required");
+      return;
+    }
+
+    if (fullName.trim().length < 3) {
+      setError("Full name must be at least 3 characters long");
+      return;
+    }
+
+    if (!email.trim()) {
+      setError("Email is required");
+      return;
+    }
+
+    if (!email.includes("@") || !email.includes(".")) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    if (!password) {
+      setError("Password is required");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const res = await apiFetch("/api/auth/signup", {
         method: "POST",
-        body: { fullName, email, password }
+        body: { fullName, email, password },
+        skipAuthRedirect: true,
       });
 
-      if (res?.status === 200 && res?.data?.success) {
+      if (res?.status === 201) {
         setSuccess(
-          "A verification email has been sent to your registered email address. " +
+          "Signup successful! A verification email has been sent to your registered email address. " +
           "Please verify your email to activate your account. " +
-          "If you don’t see the email, check your spam or junk folder."
+          "If you don't see the email, check your spam or junk folder."
         );
+        // Clear form
+        setName("");
+        setEmail("");
+        setPassword("");
       } else {
-        setError(res?.data?.message || "Signup failed");
+        // Display backend error message
+        const errorMessage = res?.data?.message || "Signup failed. Please try again.";
+        setError(errorMessage);
       }
     } catch (err) {
-      setError("Signup failed. Please try again.");
+      const errorMessage = err?.message || "Signup failed. Please check your connection and try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

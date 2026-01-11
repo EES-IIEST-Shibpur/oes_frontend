@@ -1,7 +1,7 @@
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 export async function apiFetch(path, options = {}) {
-  const { method = "GET", body, headers = {} } = options;
+  const { method = "GET", body, headers = {}, skipAuthRedirect = false } = options;
 
   const token =
     typeof window !== "undefined"
@@ -31,8 +31,8 @@ export async function apiFetch(path, options = {}) {
 
   const res = await fetch(url, opts);
 
-  // Auth errors → redirect
-  if (res.status === 401 || res.status === 403) {
+  // Auth errors → redirect (unless explicitly skipped for login/signup pages)
+  if ((res.status === 401 || res.status === 403) && !skipAuthRedirect) {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
       window.location.href = "/login";
