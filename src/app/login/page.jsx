@@ -10,17 +10,23 @@ import { AuthContext } from "@/context/AuthContext";
 
 export default function Login() {
   const router = useRouter();
-  const { login } = useContext(AuthContext);
+  const { login, isAuthenticated, isLoading } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (typeof window !== "undefined" && localStorage.getItem("token")) {
+    // Only redirect if auth check is complete and user is authenticated
+    if (!isLoading && isAuthenticated) {
       router.replace("/dashboard");
     }
-  }, [router]);
+  }, [isAuthenticated, isLoading, router]);
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return null; // or return a loading spinner
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,13 +62,13 @@ export default function Login() {
         skipAuthRedirect: true,
       });
 
-      if (res?.status === 200 && res?.data?.accessToken && res?.data?.user) {
+      if (res?.status === 200 && res?.data?.user) {
         // Use user data from login response
         const userData = res.data.user;
         console.log("Logged in user data:", userData);
         
-        // Use AuthContext login to set both token and userData
-        login(res.data.accessToken, userData);
+        // Cookie is automatically set by backend, just update context
+        login(userData);
         router.push("/dashboard");
       } else {
         // Display backend error message if available

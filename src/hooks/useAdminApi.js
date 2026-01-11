@@ -2,6 +2,18 @@
 
 import { useCallback } from 'react';
 import { useAdminAuth } from './useAdminAuth';
+import axios from 'axios';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+
+// Create axios instance for admin API
+const axiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 export function useAdminApi() {
   const { admin, logout } = useAdminAuth();
@@ -10,55 +22,35 @@ export function useAdminApi() {
     async (path, options = {}) => {
       const { method = 'GET', body, headers = {} } = options;
 
-      if (!admin?.token) {
-        throw new Error('Not authenticated');
-      }
-
-      const url = `${
-        process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-      }${path.startsWith('/') ? path : `/${path}`}`;
-
-      const opts = {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${admin.token}`,
-          ...headers,
-        },
-      };
-
-      if (body !== undefined) {
-        opts.body = JSON.stringify(body);
-      }
-
-      const res = await fetch(url, opts);
-
-      if (res.status === 401 || res.status === 403) {
-        logout();
-        throw new Error('Unauthorized');
-      }
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || `API error: ${res.status}`);
-      }
-
-      const text = await res.text();
-      let data = null;
-
       try {
-        data = text ? JSON.parse(text) : null;
-      } catch {
-        data = text;
-      }
+        const response = await axiosInstance({
+          url: path,
+          method,
+          data: body,
+          headers,
+        });
 
-      return {
-        status: res.status,
-        data,
-        ok: res.ok,
-      };
+        return {
+          status: response.status,
+          data: response.data,
+          ok: response.status >= 200 && response.status < 300,
+        };
+      } catch (error) {
+        if (error.response) {
+          const { status, data } = error.response;
+
+          if (status === 401 || status === 403) {
+            logout();
+            throw new Error('Unauthorized');
+          }
+
+          throw new Error(data.message || `API error: ${status}`);
+        }
+        
+        throw error;
+      }
     },
-    [admin, logout]
+    [logout]
   );
 
   return { apiFetch, admin };

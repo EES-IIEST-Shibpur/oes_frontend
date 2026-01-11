@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useMemo, useState } from "react";
+import { useContext, useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useProfile, useLiveExams, useUpcomingExams } from "@/hooks/useApi";
 import { Clock, FileText, Play, Lock, Calendar, Zap, BookOpen } from "lucide-react";
@@ -9,10 +9,11 @@ import Footer from "@/components/Footer";
 import DashboardSkeleton from "@/components/skeletons/DashboardSkeleton";
 import ExamInstructionsModal from "@/components/ExamInstructionsModal";
 import { AuthContext } from "@/context/AuthContext";
+import { apiFetch } from "@/lib/api";
 
 export default function Dashboard() {
   const router = useRouter();
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, isAuthenticated, isLoading: authLoading } = useContext(AuthContext);
 
   const { data: profileData, isLoading: profileLoading } = useProfile();
   const { data: liveExamsData, isLoading: liveLoading } = useLiveExams();
@@ -20,6 +21,23 @@ export default function Dashboard() {
 
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [selectedExam, setSelectedExam] = useState(null);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return <DashboardSkeleton />;
+  }
+
+  // Don't render if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
 
   const startExam = async (examId, examTitle) => {
     setSelectedExam({ id: examId, title: examTitle });
@@ -30,25 +48,19 @@ export default function Dashboard() {
     if (!selectedExam) return;
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/exam-attempt/${selectedExam.id}/start`,
+      const res = await apiFetch(
+        `/api/exam-attempt/${selectedExam.id}/start`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
         }
       );
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success) {
-          setShowInstructionsModal(false);
-          router.push(`/exam/${selectedExam.id}`);
-        } else {
-          alert("Unable to start exam. Please try again.");
-          setShowInstructionsModal(false);
-        }
+      if (res.ok && res.data?.success) {
+        setShowInstructionsModal(false);
+        router.push(`/exam/${selectedExam.id}`);
+      } else {
+        alert("Unable to start exam. Please try again.");
+        setShowInstructionsModal(false);
       }
     } catch (err) {
       console.error("Failed to start exam", err);

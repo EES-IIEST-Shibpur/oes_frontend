@@ -1,6 +1,18 @@
 'use client';
 
 import { createContext, useState, useCallback, useEffect } from 'react';
+import axios from 'axios';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+
+// Create axios instance for admin operations
+const axiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 export const AdminAuthContext = createContext();
 
@@ -9,59 +21,45 @@ export function AdminAuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Initialize admin state from localStorage
+  // Check if admin is authenticated on mount
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    const adminData = localStorage.getItem('adminData');
-    
-    if (token && adminData) {
-      try {
-        setAdmin({
-          token,
-          data: JSON.parse(adminData),
-        });
-      } catch (err) {
-        console.error('Failed to parse admin data:', err);
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminData');
-      }
-    }
-    setIsLoading(false);
+    checkAdminAuth();
   }, []);
+
+  const checkAdminAuth = async () => {
+    try {
+      const response = await axiosInstance.get('/api/profile/me');
+      setAdmin({ data: response.data });
+    } catch (err) {
+      // Silently handle expected auth errors (401/403/404)
+      const status = err.response?.status;
+      if (status !== 401 && status !== 403 && status !== 404) {
+        console.error('Failed to check admin auth:', err);
+      }
+      setAdmin(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const login = useCallback(async (email, password) => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/api/auth/login`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const response = await axiosInstance.post('/api/auth/login', {
+        email,
+        password,
+      });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Login failed');
-      }
+      const adminInfo = response.data.admin || response.data.user || { email };
 
-      const data = await res.json();
-      const token = data.token || data.accessToken;
-      const adminInfo = data.admin || data.user || { email };
-
-      localStorage.setItem('adminToken', token);
-      localStorage.setItem('adminData', JSON.stringify(adminInfo));
-      
       setAdmin({
-        token,
         data: adminInfo,
       });
 
-      return { success: true, data };
+      return { success: true, data: response.data };
     } catch (err) {
-      const errorMsg = err.message;
+      const errorMsg = err.response?.data?.message || err.message || 'Login failed';
       setError(errorMsg);
       return { success: false, error: errorMsg };
     } finally {
@@ -69,9 +67,13 @@ export function AdminAuthProvider({ children }) {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminData');
+  const logout = useCallback(async () => {
+    try {
+      await axiosInstance.post('/api/auth/logout');
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+    
     setAdmin(null);
     setError(null);
   }, []);
@@ -82,7 +84,7 @@ export function AdminAuthProvider({ children }) {
     error,
     login,
     logout,
-    isAuthenticated: !!admin?.token,
+    isAuthenticated: !!admin?.data,
   };
 
   return (
