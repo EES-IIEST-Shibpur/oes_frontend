@@ -56,14 +56,14 @@ export default function Navbar() {
 
                     {/* Dropdown Content */}
                     {dropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 animate-in fade-in slide-in-from-top-2 duration-200 cursor-pointer">
                         {/* Profile */}
                         <button
                           onClick={() => {
                             router.push('/profile');
                             setDropdownOpen(false);
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition border-b border-gray-100"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition border-b border-gray-100 cursor-pointer"
                         >
                           <User className="w-4 h-4" />
                           Profile
@@ -75,7 +75,7 @@ export default function Navbar() {
                             router.push('/dashboard');
                             setDropdownOpen(false);
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition border-b border-gray-100"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition border-b border-gray-100 cursor-pointer"
                         >
                           <LayoutDashboard className="w-4 h-4" />
                           Dashboard
@@ -88,7 +88,7 @@ export default function Navbar() {
                             router.push('/');
                             setDropdownOpen(false);
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition cursor-pointer"
                         >
                           <LogOut className="w-4 h-4" />
                           Logout
