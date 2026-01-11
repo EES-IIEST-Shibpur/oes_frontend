@@ -7,6 +7,7 @@ import { Clock, FileText, Play, Lock, Calendar, Zap, BookOpen } from "lucide-rea
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardSkeleton from "@/components/skeletons/DashboardSkeleton";
+import ExamInstructionsModal from "@/components/ExamInstructionsModal";
 import { AuthContext } from "@/context/AuthContext";
 
 export default function Dashboard() {
@@ -18,6 +19,8 @@ export default function Dashboard() {
   const [loadingExams, setLoadingExams] = useState(true);
   const [upcomingExams, setUpcomingExams] = useState([]);
   const [loadingAll, setLoadingAll] = useState(true);
+  const [showInstructionsModal, setShowInstructionsModal] = useState(false);
+  const [selectedExam, setSelectedExam] = useState(null);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -71,27 +74,37 @@ export default function Dashboard() {
     }
   };
 
-  const startExam = async (examId) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to start the exam? Once started, the timer will begin immediately."
-    );
+  const startExam = async (examId, examTitle) => {
+    // Show instructions modal first
+    setSelectedExam({ id: examId, title: examTitle });
+    setShowInstructionsModal(true);
+  };
 
-    if (!confirmed) return;
+  const handleConfirmStart = async () => {
+    if (!selectedExam) return;
 
     try {
-      const res = await apiFetch(`/api/exam-attempt/${examId}/start`, {
+      const res = await apiFetch(`/api/exam-attempt/${selectedExam.id}/start`, {
         method: "POST",
       });
 
       if (res?.data?.success) {
-        router.push(`/exam/${examId}`);
+        setShowInstructionsModal(false);
+        router.push(`/exam/${selectedExam.id}`);
       } else {
         alert("Unable to start exam. Please try again.");
+        setShowInstructionsModal(false);
       }
     } catch (err) {
       console.error("Failed to start exam", err);
       alert("Failed to start exam.");
+      setShowInstructionsModal(false);
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowInstructionsModal(false);
+    setSelectedExam(null);
   };
 
   const resumeExam = (examId) => {
@@ -119,8 +132,16 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen flex flex-col bg-linear-to-br from-gray-50 to-gray-100">
       <Navbar />
+
+      {/* Instructions Modal */}
+      <ExamInstructionsModal
+        isOpen={showInstructionsModal}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmStart}
+        examTitle={selectedExam?.title}
+      />
 
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full">
         {/* Header */}
@@ -270,7 +291,7 @@ function ExamCard({ exam, isLive, onStart }) {
           )
         ) : (
           <button
-            onClick={() => onStart(exam.id)}
+            onClick={() => onStart(exam.id, exam.title)}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:opacity-90 cursor-pointer"
             style={{ backgroundColor: "#75B06F" }}
           >
