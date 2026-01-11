@@ -29,29 +29,48 @@ export async function apiFetch(path, options = {}) {
     ? path
     : `${BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 
-  const res = await fetch(url, opts);
-
-  // Auth errors → redirect (unless explicitly skipped for login/signup pages)
-  if ((res.status === 401 || res.status === 403) && !skipAuthRedirect) {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    }
-    return { status: res.status, data: null };
-  }
-
-  const text = await res.text();
-  let data = null;
-
   try {
-    data = text ? JSON.parse(text) : null;
-  } catch {
-    data = text;
-  }
+    const res = await fetch(url, opts);
 
-  return {
-    status: res.status,
-    data,
-    ok: res.ok
-  };
+    // Auth errors → redirect (unless explicitly skipped for login/signup pages)
+    if ((res.status === 401 || res.status === 403) && !skipAuthRedirect) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      }
+      return { status: res.status, data: null };
+    }
+
+    const text = await res.text();
+    let data = null;
+
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      data = text;
+    }
+
+    return {
+      status: res.status,
+      data,
+      ok: res.ok
+    };
+  } catch (error) {
+    // Network errors (backend offline, no internet, etc.)
+    const isNetworkError = error instanceof TypeError && 
+      (error.message.includes('fetch') || 
+       error.message.includes('Failed to fetch') ||
+       error.message.includes('NetworkError'));
+    
+    return {
+      status: 0,
+      data: null,
+      ok: false,
+      error: {
+        message: error.message,
+        isNetworkError,
+        isOffline: !navigator.onLine || isNetworkError,
+      }
+    };
+  }
 }

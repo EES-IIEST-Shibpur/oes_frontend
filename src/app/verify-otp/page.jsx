@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { apiFetch } from "../../lib/api";
+import { useVerifyOtp, useResendOtp } from "@/hooks/useApi";
 import { Mail, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -22,12 +22,13 @@ function VerifyOTPComponent() {
   const params = useSearchParams();
   const email = params.get("email") || "";
 
+  const verifyOtpMutation = useVerifyOtp();
+  const resendOtpMutation = useResendOtp();
+
   const [otp, setOtp] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const [resendTimer, setResendTimer] = useState(RESEND_DELAY);
-  const [resending, setResending] = useState(false);
 
   // Countdown timer
   useEffect(() => {
@@ -43,13 +44,9 @@ function VerifyOTPComponent() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
 
     try {
-      const res = await apiFetch("/api/verify-otp", {
-        method: "POST",
-        body: { email, otp },
-      });
+      const res = await verifyOtpMutation.mutateAsync({ email, otp });
 
       if (res?.status === 200 && res?.data?.success) {
         router.push("/login?verified=true");
@@ -58,22 +55,16 @@ function VerifyOTPComponent() {
       }
     } catch {
       setError("Verification failed. Please try again.");
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleResend = async () => {
     if (resendTimer > 0) return;
 
-    setResending(true);
     setError(null);
 
     try {
-      const res = await apiFetch("/api/resend-otp", {
-        method: "POST",
-        body: { email },
-      });
+      const res = await resendOtpMutation.mutateAsync({ email });
 
       if (res?.status === 200 && res?.data?.success) {
         setResendTimer(RESEND_DELAY);
@@ -82,8 +73,6 @@ function VerifyOTPComponent() {
       }
     } catch {
       setError("Failed to resend OTP");
-    } finally {
-      setResending(false);
     }
   };
 
@@ -125,11 +114,11 @@ function VerifyOTPComponent() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={verifyOtpMutation.isPending}
             style={{ backgroundColor: "var(--color-primary)" }}
             className="w-full text-sm font-medium rounded-lg py-2 transition text-gray-900 hover:opacity-90 disabled:opacity-50"
           >
-            {loading ? "Verifying..." : "Verify"}
+            {verifyOtpMutation.isPending ? "Verifying..." : "Verify"}
           </button>
 
           <div className="text-center">
@@ -142,10 +131,10 @@ function VerifyOTPComponent() {
               <button
                 type="button"
                 onClick={handleResend}
-                disabled={resending}
+                disabled={resendOtpMutation.isPending}
                 className="text-sm text-[var(--color-primary-text)] hover:underline disabled:opacity-50"
               >
-                {resending ? "Sending..." : "Resend OTP"}
+                {resendOtpMutation.isPending ? "Sending..." : "Resend OTP"}
               </button>
             )}
           </div>

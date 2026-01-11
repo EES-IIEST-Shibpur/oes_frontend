@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useContext, useMemo } from "react";
+import { useContext, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiFetch } from "../../lib/api";
+import { useProfile, useLiveExams, useUpcomingExams } from "@/hooks/useApi";
 import { Clock, FileText, Play, Lock, Calendar, Zap, BookOpen } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -14,68 +14,14 @@ export default function Dashboard() {
   const router = useRouter();
   const { user, logout } = useContext(AuthContext);
 
-  const [userData, setUserData] = useState(null);
-  const [liveExams, setLiveExams] = useState([]);
-  const [loadingExams, setLoadingExams] = useState(true);
-  const [upcomingExams, setUpcomingExams] = useState([]);
-  const [loadingAll, setLoadingAll] = useState(true);
+  const { data: profileData, isLoading: profileLoading } = useProfile();
+  const { data: liveExamsData, isLoading: liveLoading } = useLiveExams();
+  const { data: upcomingExamsData, isLoading: upcomingLoading } = useUpcomingExams();
+
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [selectedExam, setSelectedExam] = useState(null);
 
-  useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        setLoadingAll(true);
-        await Promise.all([
-          fetchUserProfile(),
-          fetchLiveExams(),
-          fetchUpcomingExams(),
-        ]);
-      } finally {
-        setLoadingAll(false);
-      }
-    };
-    fetchAll();
-  }, []);
-
-  const fetchUserProfile = async () => {
-    try {
-      const res = await apiFetch("/api/profile/me");
-      if (res?.status === 200) {
-        setUserData(res.data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch user profile", err);
-    }
-  };
-
-  const fetchLiveExams = async () => {
-    try {
-      setLoadingExams(true);
-      const res = await apiFetch("/api/exam/live");
-      if (res?.data?.success) {
-        setLiveExams(res.data.exams || []);
-      }
-    } catch (err) {
-      console.error("Failed to fetch live exams", err);
-    } finally {
-      setLoadingExams(false);
-    }
-  };
-
-  const fetchUpcomingExams = async () => {
-    try {
-      const res = await apiFetch("/api/exam/upcoming");
-      if (res?.data?.success) {
-        setUpcomingExams(res.data.exams || []);
-      }
-    } catch (err) {
-      console.error("Failed to fetch upcoming exams", err);
-    }
-  };
-
   const startExam = async (examId, examTitle) => {
-    // Show instructions modal first
     setSelectedExam({ id: examId, title: examTitle });
     setShowInstructionsModal(true);
   };
@@ -84,16 +30,25 @@ export default function Dashboard() {
     if (!selectedExam) return;
 
     try {
-      const res = await apiFetch(`/api/exam-attempt/${selectedExam.id}/start`, {
-        method: "POST",
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/exam-attempt/${selectedExam.id}/start`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-      if (res?.data?.success) {
-        setShowInstructionsModal(false);
-        router.push(`/exam/${selectedExam.id}`);
-      } else {
-        alert("Unable to start exam. Please try again.");
-        setShowInstructionsModal(false);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setShowInstructionsModal(false);
+          router.push(`/exam/${selectedExam.id}`);
+        } else {
+          alert("Unable to start exam. Please try again.");
+          setShowInstructionsModal(false);
+        }
       }
     } catch (err) {
       console.error("Failed to start exam", err);
@@ -116,12 +71,17 @@ export default function Dashboard() {
     router.push("/login");
   };
 
+  const userData = profileData?.data;
+  const liveExams = liveExamsData?.data?.exams || [];
+  const upcomingExams = upcomingExamsData?.data?.exams || [];
+  const isLoading = profileLoading || liveLoading || upcomingLoading;
+
   const userName = useMemo(
     () => userData?.fullName || user?.data?.fullName || "Candidate",
     [userData, user]
   );
 
-  if (loadingAll) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
         <Navbar />
@@ -170,7 +130,7 @@ export default function Dashboard() {
             Live Exams
           </h2>
 
-          {loadingExams ? (
+          {liveLoading ? (
             <DashboardSkeleton />
           ) : liveExams.length === 0 ? (
             <div className="bg-white rounded-xl p-12 text-center border border-gray-200">
@@ -260,10 +220,17 @@ function ExamCard({ exam, isLive, onStart }) {
           </div>
         )}
 
-        {!isLive && exam.startTime && (
+        {exam.startTime && (
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
-            <span>{formatDate(exam.startTime)}</span>
+            <span>Start: {formatDate(exam.startTime)}</span>
+          </div>
+        )}
+
+        {exam.endTime && (
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4" />
+            <span>End: {formatDate(exam.endTime)}</span>
           </div>
         )}
       </div>

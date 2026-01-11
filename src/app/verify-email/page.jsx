@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { apiFetch } from "../../lib/api";
+import { useVerifyEmail, useResendVerification } from "@/hooks/useApi";
 import { CheckCircle, XCircle, Loader } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -19,12 +19,14 @@ function VerifyEmail() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
+    const verifyEmailMutation = useVerifyEmail();
+    const resendVerificationMutation = useResendVerification();
+
     const token = searchParams.get("token");
 
     const [status, setStatus] = useState("loading"); // loading | success | error
     const [message, setMessage] = useState("");
     const [email, setEmail] = useState("");
-    const [resending, setResending] = useState(false);
 
     useEffect(() => {
         if (!token) {
@@ -33,13 +35,14 @@ function VerifyEmail() {
             return;
         }
 
-        verifyEmail();
+        verifyEmailAsync();
     }, [token]);
 
-    const verifyEmail = async () => {
+    const verifyEmailAsync = async () => {
         try {
-            await apiFetch(`/api/auth/verify-email/${token}`, {
-                method: "POST",
+            const res = await verifyEmailMutation.mutateAsync({
+                token,
+                body: {}
             });
 
             setStatus("success");
@@ -57,24 +60,14 @@ function VerifyEmail() {
         }
     };
 
-    const resendVerification = async () => {
+    const resendVerificationAsync = async () => {
         if (!email) return;
 
         try {
-            setResending(true);
-            await apiFetch("/api/auth/resend-verification", {
-                method: "POST",
-                body: JSON.stringify({ email }),
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-
+            await resendVerificationMutation.mutateAsync({ email });
             setMessage("Verification email resent. Please check your inbox.");
         } catch (err) {
             setMessage(err?.message || "Failed to resend verification email.");
-        } finally {
-            setResending(false);
         }
     };
 
@@ -125,12 +118,12 @@ function VerifyEmail() {
                                     placeholder="you@example.com"
                                 />
                                 <button
-                                    onClick={resendVerification}
-                                    disabled={resending}
+                                    onClick={resendVerificationAsync}
+                                    disabled={resendVerificationMutation.isPending}
                                     style={{ backgroundColor: "var(--color-primary)" }}
                                     className="w-full py-2 rounded-lg text-sm font-medium text-gray-900 hover:opacity-90 disabled:opacity-50"
                                 >
-                                    {resending ? "Sending..." : "Resend Verification Email"}
+                                    {resendVerificationMutation.isPending ? "Sending..." : "Resend Verification Email"}
                                 </button>
                             </div>
                         </>

@@ -1,180 +1,287 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { apiFetch } from "../../../lib/api";
-import { Clock, ChevronLeft, ChevronRight, Save, Send, X } from "lucide-react";
+import { useExamAttempt, useSaveExamAnswer, useSubmitExam } from "@/hooks/useApi";
+import { Clock, ChevronLeft, ChevronRight, Save, Send, X, AlertCircle, Wifi, WifiOff } from "lucide-react";
+import { useOfflineQueue } from "@/hooks/useOffline";
+import { isNetworkError, getErrorMessage } from "@/utils/errorHandler";
+
+// Reducer function for managing exam state
+const examReducer = (state, action) => {
+  switch (action.type) {
+    case 'INIT_EXAM':
+      return {
+        ...state,
+        questions: action.payload.questions,
+        examTitle: action.payload.examTitle,
+        remainingSeconds: action.payload.remainingSeconds,
+        answersMap: action.payload.answersMap,
+        savedMap: action.payload.savedMap,
+      };
+    
+    case 'SET_CURRENT_INDEX':
+      return { ...state, currentIndex: action.payload };
+    
+    case 'DECREMENT_TIMER':
+      return { ...state, remainingSeconds: Math.max(0, state.remainingSeconds - 1) };
+    
+    case 'UPDATE_ANSWER':
+      return {
+        ...state,
+        answersMap: {
+          ...state.answersMap,
+          [action.payload.questionId]: action.payload.answer,
+        },
+        savedMap: {
+          ...state.savedMap,
+          [action.payload.questionId]: false,
+        },
+      };
+    
+    case 'MARK_SAVED':
+      return {
+        ...state,
+        savedMap: {
+          ...state.savedMap,
+          [action.payload.questionId]: true,
+        },
+      };
+    
+    case 'CLEAR_ANSWER':
+      const { [action.payload.questionId]: removedAnswer, ...restAnswers } = state.answersMap;
+      const { [action.payload.questionId]: removedSaved, ...restSaved } = state.savedMap;
+      return {
+        ...state,
+        answersMap: restAnswers,
+        savedMap: restSaved,
+      };
+    
+    default:
+      return state;
+  }
+};
+
+const initialState = {
+  questions: [],
+  examTitle: "",
+  currentIndex: 0,
+  remainingSeconds: 0,
+  answersMap: {},
+  savedMap: {},
+};
 
 export default function ExamPage() {
   const { examId } = useParams();
   const router = useRouter();
 
-  const [questions, setQuestions] = useState([]);
-  const [examTitle, setExamTitle] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [remainingSeconds, setRemainingSeconds] = useState(0);
-  const [answersMap, setAnswersMap] = useState({});
-  const [savedMap, setSavedMap] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const { data: examData, isLoading, error: fetchError } = useExamAttempt(examId);
+  const saveAnswerMutation = useSaveExamAnswer();
+  const submitExamMutation = useSubmitExam();
 
+  const [state, dispatch] = useReducer(examReducer, initialState);
   const timerRef = useRef(null);
 
+  // Offline queue and error handling
+  const { isOnline, queueAnswer, clearPending, loadPendingAnswers } = useOfflineQueue();
+  const [savingError, setSavingError] = useState(null);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
+
+  // Error boundary for fetch errors
+  if (fetchError) {
+    throw new Error(`Failed to load exam: ${fetchError.message}`);
+  }
+
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const res = await apiFetch(`/api/exam-attempt/${examId}/attempt`);
-        if (!res?.data?.success) return;
+    if (examData?.data?.success) {
+      const { exam, remainingSeconds } = examData.data;
 
-        const { exam, remainingSeconds } = res.data;
-        setExamTitle(exam.title || "");
-        setQuestions(exam.questions || []);
-        setRemainingSeconds(remainingSeconds);
+      const initAnswers = {};
+      const initSaved = {};
 
-        const initAnswers = {};
-        const initSaved = {};
+      exam.questions.forEach((q) => {
+        if (q.studentAnswer) {
+          initAnswers[q.id] = {
+            selectedOptionIds: q.studentAnswer.selectedOptionIds || [],
+            numericalAnswer: q.studentAnswer.numericalAnswer ?? null,
+          };
+          initSaved[q.id] = true;
+        }
+      });
 
-        exam.questions.forEach((q) => {
-          if (q.studentAnswer) {
-            initAnswers[q.id] = {
-              selectedOptionIds: q.studentAnswer.selectedOptionIds || [],
-              numericalAnswer: q.studentAnswer.numericalAnswer ?? null,
-            };
-            initSaved[q.id] = true;
-          }
-        });
-
-        setAnswersMap(initAnswers);
-        setSavedMap(initSaved);
-      } catch (err) {
-        console.error("Failed to load exam", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
-  }, [examId]);
+      dispatch({
+        type: 'INIT_EXAM',
+        payload: {
+          questions: exam.questions || [],
+          examTitle: exam.title || "",
+          remainingSeconds,
+          answersMap: initAnswers,
+          savedMap: initSaved,
+        },
+      });
+    }
+  }, [examData]);
 
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
-    if (remainingSeconds <= 0) return;
+    if (state.remainingSeconds <= 0) return;
 
     timerRef.current = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current);
-          autoSubmit();
-          return 0;
-        }
-        return prev - 1;
-      });
+      dispatch({ type: 'DECREMENT_TIMER' });
+      if (state.remainingSeconds <= 1) {
+        clearInterval(timerRef.current);
+        autoSubmit();
+      }
     }, 1000);
 
     return () => clearInterval(timerRef.current);
-  }, [remainingSeconds]);
+  }, [state.remainingSeconds]);
 
-  const currentQuestion = questions[currentIndex];
+  const currentQuestion = state.questions[state.currentIndex];
 
   const handleOptionChange = (optionId) => {
     const isMultiple = currentQuestion.questionType === "MULTIPLE_CORRECT";
+    const prevAns = state.answersMap[currentQuestion.id] || { selectedOptionIds: [] };
 
-    setAnswersMap((prev) => {
-      const prevAns = prev[currentQuestion.id] || { selectedOptionIds: [] };
+    const updated = isMultiple
+      ? prevAns.selectedOptionIds.includes(optionId)
+        ? prevAns.selectedOptionIds.filter((id) => id !== optionId)
+        : [...prevAns.selectedOptionIds, optionId]
+      : [optionId];
 
-      const updated = isMultiple
-        ? prevAns.selectedOptionIds.includes(optionId)
-          ? prevAns.selectedOptionIds.filter((id) => id !== optionId)
-          : [...prevAns.selectedOptionIds, optionId]
-        : [optionId];
-
-      const newState = {
-        ...prev,
-        [currentQuestion.id]: { selectedOptionIds: updated },
-      };
-
-      setSavedMap((s) => ({ ...s, [currentQuestion.id]: false }));
-      return newState;
+    dispatch({
+      type: 'UPDATE_ANSWER',
+      payload: {
+        questionId: currentQuestion.id,
+        answer: { selectedOptionIds: updated },
+      },
     });
   };
 
   const handleNumericalChange = (value) => {
-    setAnswersMap((prev) => {
-      const newState = {
-        ...prev,
-        [currentQuestion.id]: { numericalAnswer: value },
-      };
-      setSavedMap((s) => ({ ...s, [currentQuestion.id]: false }));
-      return newState;
+    dispatch({
+      type: 'UPDATE_ANSWER',
+      payload: {
+        questionId: currentQuestion.id,
+        answer: { numericalAnswer: value },
+      },
     });
   };
 
   const clearAnswer = () => {
-    const q = currentQuestion;
-    if (!q) return;
-    setAnswersMap((prev) => {
-      const copy = { ...prev };
-      delete copy[q.id];
-      return copy;
-    });
-    setSavedMap((prev) => {
-      const copy = { ...prev };
-      delete copy[q.id];
-      return copy;
+    if (!currentQuestion) return;
+    dispatch({
+      type: 'CLEAR_ANSWER',
+      payload: { questionId: currentQuestion.id },
     });
   };
 
-  const saveAndNext = async () => {
+  const saveAndNext = () => {
     const q = currentQuestion;
-    if (!q || saving) return;
-
-    const ans = answersMap[q.id] || {};
-    const payload = { questionId: q.id };
-
-    if (q.questionType === "NUMERICAL") {
-      payload.numericalAnswer = ans.numericalAnswer ?? null;
-    } else {
-      payload.selectedOptionIds = ans.selectedOptionIds || [];
-    }
+    if (!q || saveAnswerMutation.isPending) return;
 
     try {
-      setSaving(true);
-      const res = await apiFetch(`/api/exam-attempt/${examId}/save`, {
-        method: "POST",
-        body: payload,
-      });
+      const ans = state.answersMap[q.id] || {};
+      const payload = { questionId: q.id };
 
-      if (res?.data?.success) {
-        setSavedMap((s) => ({ ...s, [q.id]: true }));
-        setCurrentIndex((i) => Math.min(i + 1, questions.length - 1));
+      if (q.questionType === "NUMERICAL") {
+        payload.numericalAnswer = ans.numericalAnswer ?? null;
+      } else {
+        payload.selectedOptionIds = ans.selectedOptionIds || [];
       }
-    } catch (err) {
-      console.error("Save failed", err);
-    } finally {
-      setSaving(false);
+
+      saveAnswerMutation.mutate(
+        { examId, data: payload },
+        {
+          onSuccess: () => {
+            setSavingError(null);
+            setShowErrorAlert(false);
+            clearPending(q.id);
+            dispatch({ type: 'MARK_SAVED', payload: { questionId: q.id } });
+            dispatch({ type: 'SET_CURRENT_INDEX', payload: Math.min(state.currentIndex + 1, state.questions.length - 1) });
+          },
+          onError: (err) => {
+            console.error("Save failed", err);
+            
+            // Check if it's a network error
+            if (isNetworkError(err)) {
+              // Queue the answer locally for later sync
+              queueAnswer(examId, q.id, payload);
+              setSavingError({
+                type: 'offline',
+                message: 'Server offline - Answer saved locally and will sync when connection is restored',
+              });
+            } else {
+              setSavingError({
+                type: 'error',
+                message: getErrorMessage(err),
+              });
+            }
+            setShowErrorAlert(true);
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error in saveAndNext:", error);
+      setSavingError({
+        type: 'error',
+        message: 'Failed to save answer. Please try again.',
+      });
+      setShowErrorAlert(true);
     }
   };
 
-  const submitExam = async () => {
-    if (submitting) return;
+  const submitExam = () => {
+    if (submitExamMutation.isPending) return;
     if (!window.confirm("Submit exam? You cannot change answers after submission.")) return;
 
     try {
-      setSubmitting(true);
-      const res = await apiFetch(`/api/exam-attempt/${examId}/submit`, { method: "POST" });
-      if (res?.data?.success) router.push("/dashboard");
-    } catch (err) {
-      console.error("Submit failed", err);
-      setSubmitting(false);
+      submitExamMutation.mutate(examId, {
+        onSuccess: () => {
+          setSavingError(null);
+          router.push("/dashboard");
+        },
+        onError: (err) => {
+          console.error("Submit failed", err);
+          
+          if (isNetworkError(err)) {
+            setSavingError({
+              type: 'error',
+              message: 'Cannot submit - Server is offline. Your answers are saved. Try again when connection is restored.',
+            });
+          } else {
+            setSavingError({
+              type: 'error',
+              message: getErrorMessage(err),
+            });
+          }
+          setShowErrorAlert(true);
+        },
+      });
+    } catch (error) {
+      console.error("Error in submitExam:", error);
+      setSavingError({
+        type: 'error',
+        message: 'Failed to submit exam. Please try again.',
+      });
+      setShowErrorAlert(true);
     }
   };
 
-  const autoSubmit = async () => {
+  const autoSubmit = () => {
     try {
-      await apiFetch(`/api/exam-attempt/${examId}/submit`, { method: "POST" });
-    } finally {
+      submitExamMutation.mutate(examId, {
+        onSettled: () => {
+          router.push("/dashboard");
+        },
+        onError: (err) => {
+          console.error("Auto-submit failed", err);
+          // Even if auto-submit fails, redirect to dashboard
+          router.push("/dashboard");
+        },
+      });
+    } catch (error) {
+      console.error("Error in autoSubmit:", error);
       router.push("/dashboard");
     }
   };
@@ -186,9 +293,69 @@ export default function ExamPage() {
     return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-gray-500">Loading exam...</div>
+  if (isLoading) return (
+    <div className="min-h-screen bg-gray-50 select-none">
+      {/* Header Skeleton */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-6 bg-gray-200 rounded w-48 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+          </div>
+          <div className="h-10 bg-gray-200 rounded-lg w-32 animate-pulse"></div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        <div className="grid lg:grid-cols-[1fr_300px] gap-6">
+          {/* Question Panel Skeleton */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="mb-6">
+              <div className="h-6 bg-gray-200 rounded-full w-24 mb-3 animate-pulse"></div>
+              <div className="space-y-2">
+                <div className="h-5 bg-gray-200 rounded w-full animate-pulse"></div>
+                <div className="h-5 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+              </div>
+            </div>
+
+            <div className="space-y-3 mb-8">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-14 bg-gray-100 rounded-lg border-2 border-gray-200 animate-pulse"></div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <div className="h-10 bg-gray-200 rounded-lg w-28 animate-pulse"></div>
+              <div className="h-10 bg-gray-200 rounded-lg w-24 animate-pulse"></div>
+              <div className="h-10 bg-gray-200 rounded-lg w-24 animate-pulse"></div>
+              <div className="h-10 bg-gray-200 rounded-lg w-32 animate-pulse"></div>
+              <div className="ml-auto h-10 bg-gray-200 rounded-lg w-28 animate-pulse"></div>
+            </div>
+          </div>
+
+          {/* Sidebar Skeleton */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="mb-4">
+              <div className="h-4 bg-gray-200 rounded w-20 mb-2 animate-pulse"></div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-gray-200 rounded-full w-1/3 animate-pulse"></div>
+              </div>
+            </div>
+
+            <div className="space-y-2 mb-4 pb-4 border-b border-gray-200">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-5 gap-2">
+              {Array.from({ length: 25 }).map((_, i) => (
+                <div key={i} className="w-full aspect-square bg-gray-200 rounded-lg animate-pulse"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
@@ -198,21 +365,49 @@ export default function ExamPage() {
     </div>
   );
 
-  const answeredCount = Object.keys(savedMap).length;
+  const answeredCount = Object.keys(state.savedMap).length;
 
   return (
   <div className="min-h-screen bg-gray-50 select-none">
+    {/* Online/Offline Status Banner */}
+    {!isOnline && (
+      <div className="bg-red-50 border-b border-red-200 px-4 py-3 flex items-center gap-2 text-red-700">
+        <WifiOff className="w-4 h-4" />
+        <span className="text-sm font-medium">No internet connection - Answers are being saved locally</span>
+      </div>
+    )}
+
+    {/* Error Alert */}
+    {showErrorAlert && savingError && (
+      <div className={`border-b px-4 py-3 flex items-center justify-between gap-2 ${
+        savingError.type === 'offline' 
+          ? 'bg-yellow-50 border-yellow-200 text-yellow-700' 
+          : 'bg-red-50 border-red-200 text-red-700'
+      }`}>
+        <div className="flex items-center gap-2">
+          <AlertCircle className="w-4 h-4" />
+          <span className="text-sm font-medium">{savingError.message}</span>
+        </div>
+        <button
+          onClick={() => setShowErrorAlert(false)}
+          className="text-xl leading-none font-bold opacity-60 hover:opacity-100"
+        >
+          ×
+        </button>
+      </div>
+    )}
+
     {/* Header */}
     <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-gray-900">{examTitle}</h1>
-          <p className="text-sm text-gray-500">Question {currentIndex + 1} of {questions.length}</p>
+          <h1 className="text-lg font-semibold text-gray-900">{state.examTitle}</h1>
+          <p className="text-sm text-gray-500">Question {state.currentIndex + 1} of {state.questions.length}</p>
         </div>
         <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-gray-50">
           <Clock className="w-5 h-5 text-gray-600" />
           <div className="text-lg font-mono font-semibold text-gray-900">
-            {formatTime(remainingSeconds)}
+            {formatTime(state.remainingSeconds)}
           </div>
         </div>
       </div>
@@ -225,7 +420,7 @@ export default function ExamPage() {
           {/* Question Statement */}
           <div className="mb-6">
             <div className="inline-block px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-700 mb-3">
-              Question {currentIndex + 1}
+              Question {state.currentIndex + 1}
             </div>
             <h2 className="text-lg font-medium text-gray-900 leading-relaxed">
               {currentQuestion.statement}
@@ -237,7 +432,7 @@ export default function ExamPage() {
             {(currentQuestion.questionType === "SINGLE_CORRECT" ||
               currentQuestion.questionType === "MULTIPLE_CORRECT") &&
               currentQuestion.options.map((opt) => {
-                const checked = answersMap[currentQuestion.id]?.selectedOptionIds?.includes(opt.id) || false;
+                const checked = state.answersMap[currentQuestion.id]?.selectedOptionIds?.includes(opt.id) || false;
                 const inputType = currentQuestion.questionType === "MULTIPLE_CORRECT" ? "checkbox" : "radio";
 
                 return (
@@ -262,7 +457,7 @@ export default function ExamPage() {
             {currentQuestion.questionType === "NUMERICAL" && (
               <input
                 type="number"
-                value={answersMap[currentQuestion.id]?.numericalAnswer ?? ""}
+                value={state.answersMap[currentQuestion.id]?.numericalAnswer ?? ""}
                 onChange={(e) => handleNumericalChange(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#75B06F] focus:outline-none text-gray-900"
                 placeholder="Enter your answer"
@@ -273,8 +468,8 @@ export default function ExamPage() {
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3">
             <button
-              disabled={currentIndex === 0}
-              onClick={() => setCurrentIndex((i) => i - 1)}
+              disabled={state.currentIndex === 0}
+              onClick={() => dispatch({ type: 'SET_CURRENT_INDEX', payload: state.currentIndex - 1 })}
               className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -290,12 +485,21 @@ export default function ExamPage() {
             </button>
 
             <button
+              disabled={state.currentIndex === state.questions.length - 1}
+              onClick={() => dispatch({ type: 'SET_CURRENT_INDEX', payload: Math.min(state.currentIndex + 1, state.questions.length - 1) })}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <ChevronRight className="w-4 h-4" />
+              Next
+            </button>
+
+            <button
               onClick={saveAndNext}
-              disabled={saving}
+              disabled={saveAnswerMutation.isPending}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               style={{ backgroundColor: "#75B06F" }}
             >
-              {saving ? (
+              {saveAnswerMutation.isPending ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   Saving...
@@ -310,10 +514,10 @@ export default function ExamPage() {
 
             <button
               onClick={submitExam}
-              disabled={submitting}
+              disabled={submitExamMutation.isPending}
               className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              {submitting ? (
+              {submitExamMutation.isPending ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   Submitting...
@@ -335,7 +539,7 @@ export default function ExamPage() {
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-gray-700">Progress</span>
               <span className="text-sm font-semibold text-gray-900">
-                {answeredCount}/{questions.length}
+                {answeredCount}/{state.questions.length}
               </span>
             </div>
             <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -343,7 +547,7 @@ export default function ExamPage() {
                 className="h-full rounded-full transition-all duration-300"
                 style={{
                   backgroundColor: "#75B06F",
-                  width: `${(answeredCount / questions.length) * 100}%`
+                  width: `${(answeredCount / state.questions.length) * 100}%`
                 }}
               />
             </div>
@@ -371,10 +575,10 @@ export default function ExamPage() {
 
           {/* Question Grid */}
           <div className="grid grid-cols-5 gap-2">
-            {questions.map((q, idx) => {
-              const isCurrent = idx === currentIndex;
-              const hasAnswer = answersMap[q.id];
-              const isSaved = savedMap[q.id];
+            {state.questions.map((q, idx) => {
+              const isCurrent = idx === state.currentIndex;
+              const hasAnswer = state.answersMap[q.id];
+              const isSaved = state.savedMap[q.id];
 
               const bgColor = isCurrent
                 ? "bg-blue-500 text-white"
@@ -387,7 +591,7 @@ export default function ExamPage() {
               return (
                 <button
                   key={q.id}
-                  onClick={() => setCurrentIndex(idx)}
+                  onClick={() => dispatch({ type: 'SET_CURRENT_INDEX', payload: idx })}
                   className={`w-full aspect-square rounded-lg text-sm font-medium transition hover:opacity-80 cursor-pointer ${bgColor}`}
                 >
                   {idx + 1}

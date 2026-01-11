@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiFetch } from "../../lib/api";
+import { useProfile, useUpdateProfile } from "@/hooks/useApi";
 import { Edit, Save, X, User, CheckCircle, AlertCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -47,8 +47,9 @@ const SEM_MAP = {
 export default function ProfilePage() {
   const router = useRouter();
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const { data: profileRes, isLoading, error: fetchError } = useProfile();
+  const updateProfileMutation = useUpdateProfile();
+
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [editing, setEditing] = useState(false);
@@ -74,49 +75,30 @@ export default function ProfilePage() {
   const [originalForm, setOriginalForm] = useState({});
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    if (profileRes?.data?.data) {
+      const data = profileRes.data.data;
+      setProfileData(data);
 
-  const fetchProfile = async () => {
-    try {
-      setLoading(true);
-      const res = await apiFetch("/api/profile/me", {
-        skipAuthRedirect: false,
-      });
-
-      if (res?.status === 200 && res?.data?.data) {
-        const data = res.data.data;
-        setProfileData(data);
-
-        const mapped = {
-          fullName: data.fullName || "",
-          course: data.profile?.course || "",
-          department: data.profile?.department || "",
-          year: data.profile?.year || "",
-          semester: data.profile?.semester || "",
-          enrollmentNumber: data.profile?.enrollmentNumber || "",
-        };
-        setForm(mapped);
-        setOriginalForm(mapped);
-      } else {
-        setError(res?.data?.message || "Failed to load profile");
-      }
-    } catch (err) {
-      console.error("Failed to fetch profile", err);
-      setError("Failed to load profile. Please try again.");
-    } finally {
-      setLoading(false);
+      const mapped = {
+        fullName: data.fullName || "",
+        course: data.profile?.course || "",
+        department: data.profile?.department || "",
+        year: data.profile?.year || "",
+        semester: data.profile?.semester || "",
+        enrollmentNumber: data.profile?.enrollmentNumber || "",
+      };
+      setForm(mapped);
+      setOriginalForm(mapped);
     }
-  };
+  }, [profileRes]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-    setError(null); // Clear error on input change
+    setError(null);
   };
 
   const validateForm = () => {
-    // Validate full name
     if (!form.fullName.trim()) {
       setError("Full name is required");
       return false;
@@ -126,31 +108,26 @@ export default function ProfilePage() {
       return false;
     }
 
-    // Validate course
     if (!form.course) {
       setError("Course is required");
       return false;
     }
 
-    // Validate department
     if (!form.department) {
       setError("Department is required");
       return false;
     }
 
-    // Validate year
     if (!form.year) {
       setError("Year is required");
       return false;
     }
 
-    // Validate semester
     if (!form.semester) {
       setError("Semester is required");
       return false;
     }
 
-    // Validate enrollment number
     if (!form.enrollmentNumber.trim()) {
       setError("Enrollment number is required");
       return false;
@@ -168,22 +145,17 @@ export default function ProfilePage() {
       return;
     }
 
-    setSaving(true);
     setError(null);
     setSuccess(null);
 
     try {
-      const res = await apiFetch("/api/profile/me", {
-        method: "PUT",
-        body: {
-          fullName: form.fullName.trim(),
-          course: form.course,
-          department: form.department,
-          year: form.year,
-          semester: form.semester,
-          enrollmentNumber: form.enrollmentNumber.trim(),
-        },
-        skipAuthRedirect: true,
+      const res = await updateProfileMutation.mutateAsync({
+        fullName: form.fullName.trim(),
+        course: form.course,
+        department: form.department,
+        year: form.year,
+        semester: form.semester,
+        enrollmentNumber: form.enrollmentNumber.trim(),
       });
 
       if (res?.status === 200 && res?.data?.data) {
@@ -198,9 +170,7 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error("Save failed", err);
-      setError("Failed to update profile. Please try again.");
-    } finally {
-      setSaving(false);
+      setError("Failed to save profile. Please try again.");
     }
   };
 
@@ -210,12 +180,54 @@ export default function ProfilePage() {
     setError(null);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-gray-600">Loading profile...</p>
+        <div className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 w-full">
+          {/* Header Skeleton */}
+          <div className="bg-white rounded-lg shadow-sm border p-6 sm:p-8 mb-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 border border-gray-200 rounded-full bg-gray-100 animate-pulse"></div>
+                <div className="space-y-2">
+                  <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded w-56 animate-pulse"></div>
+                </div>
+              </div>
+              <div className="h-8 bg-gray-200 rounded-full w-24 animate-pulse"></div>
+            </div>
+            <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-3/4 mt-2 animate-pulse"></div>
+          </div>
+
+          {/* Profile Completion Bar Skeleton */}
+          <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded w-12 animate-pulse"></div>
+            </div>
+            <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full bg-gray-200 rounded-full w-2/3 animate-pulse"></div>
+            </div>
+          </div>
+
+          {/* Profile Details Skeleton */}
+          <div className="bg-white rounded-lg shadow-sm border p-6 sm:p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="h-6 bg-gray-200 rounded w-40 animate-pulse"></div>
+              <div className="h-10 bg-gray-200 rounded-lg w-24 animate-pulse"></div>
+            </div>
+
+            <div className="space-y-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i}>
+                  <div className="h-4 bg-gray-200 rounded w-32 mb-2 animate-pulse"></div>
+                  <div className="h-10 bg-gray-100 rounded-lg w-full animate-pulse"></div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
         <Footer />
       </div>
@@ -526,17 +538,17 @@ export default function ProfilePage() {
               <div className="flex gap-3 pt-6 border-t">
                 <button
                   onClick={saveProfile}
-                  disabled={saving}
+                  disabled={updateProfileMutation.isPending}
                   style={{ backgroundColor: "var(--color-primary)" }}
                   className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium text-gray-900 hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Save className="w-4 h-4" />
-                  {saving ? "Saving..." : "Save Profile"}
+                  {updateProfileMutation.isPending ? "Saving..." : "Save Profile"}
                 </button>
 
                 <button
                   onClick={cancelEdit}
-                  disabled={saving}
+                  disabled={updateProfileMutation.isPending}
                   className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <X className="w-4 h-4" />

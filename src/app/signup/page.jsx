@@ -2,17 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiFetch } from "../../lib/api";
+import { useSignup } from "@/hooks/useApi";
 import { User, Mail, Key } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export default function Signup() {
   const router = useRouter();
+  const signupMutation = useSignup();
+  
   const [fullName, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
@@ -52,14 +53,8 @@ export default function Signup() {
       return;
     }
 
-    setLoading(true);
-
     try {
-      const res = await apiFetch("/api/auth/signup", {
-        method: "POST",
-        body: { fullName, email, password },
-        skipAuthRedirect: true,
-      });
+      const res = await signupMutation.mutateAsync({ fullName, email, password });
 
       if (res?.status === 201) {
         setSuccess(
@@ -72,15 +67,12 @@ export default function Signup() {
         setEmail("");
         setPassword("");
       } else {
-        // Display backend error message
         const errorMessage = res?.data?.message || "Signup failed. Please try again.";
         setError(errorMessage);
       }
     } catch (err) {
       const errorMessage = err?.message || "Signup failed. Please check your connection and try again.";
       setError(errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -156,11 +148,11 @@ export default function Signup() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={signupMutation.isPending}
                 style={{ backgroundColor: "var(--color-primary)" }}
                 className="w-full text-sm font-medium rounded-lg py-2 transition text-gray-900 hover:opacity-90 disabled:opacity-50"
               >
-                {loading ? "Submitting..." : "Signup"}
+                {signupMutation.isPending ? "Submitting..." : "Signup"}
               </button>
             </>
           )}

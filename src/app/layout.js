@@ -1,5 +1,6 @@
 import { AdminAuthProvider } from '@/context/AdminAuthContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 import './globals.css';
 
 export const metadata = {
@@ -11,11 +12,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <AuthProvider>
-          <AdminAuthProvider>
-            {children}
-          </AdminAuthProvider>
-        </AuthProvider>
+        <ReactQueryProvider>
+          <AuthProvider>
+            <AdminAuthProvider>
+              {children}
+            </AdminAuthProvider>
+          </AuthProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );

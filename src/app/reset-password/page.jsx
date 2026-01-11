@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { apiFetch } from "../../lib/api";
+import { useResetPassword } from "@/hooks/useApi";
 import { ArrowLeft, Key } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export default function ResetPassword() {
     const router = useRouter();
+    const resetPasswordMutation = useResetPassword();
+    
     const [email, setEmail] = useState("");
     const [otp, setOtp] = useState("");
     const [newPassword, setNewPassword] = useState("");
@@ -41,10 +43,10 @@ export default function ResetPassword() {
         }
 
         try {
-            const res = await apiFetch("/api/auth/reset-password", {
-                method: "POST",
-                body: { email, otp, newPassword },
-                skipAuthRedirect: true,
+            const res = await resetPasswordMutation.mutateAsync({ 
+                email, 
+                otp, 
+                newPassword 
             });
 
             if (res?.status === 200) {
@@ -91,8 +93,13 @@ export default function ResetPassword() {
                         />
                     </div>
 
-                    <button type="submit" style={{ backgroundColor: "var(--color-primary)" }} className="w-full text-sm font-medium rounded-lg py-2 text-gray-900">
-                        Reset Password
+                    <button 
+                        type="submit" 
+                        disabled={resetPasswordMutation.isPending}
+                        style={{ backgroundColor: "var(--color-primary)" }} 
+                        className="w-full text-sm font-medium rounded-lg py-2 text-gray-900 disabled:opacity-50"
+                    >
+                        {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password"}
                     </button>
                 </form>
             </div>
