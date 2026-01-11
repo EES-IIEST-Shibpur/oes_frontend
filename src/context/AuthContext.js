@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
     try {
       // Try to fetch current user from backend
       // This will use the httpOnly cookie automatically
-      const result = await apiFetch('/api/profile', { 
+      const result = await apiFetch('/api/profile/me', { 
         skipAuthRedirect: true 
       });
       
