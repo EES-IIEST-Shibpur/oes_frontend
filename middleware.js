@@ -25,7 +25,10 @@ export function middleware(request) {
   const { pathname } = request.nextUrl;
   
   // Check if user has authentication cookie
-  const hasAuthCookie = request.cookies.has('accessToken')
+  const hasAuthCookie = request.cookies.has('accessToken');
+  
+  // Check for auth flag in request headers (set by client)
+  const hasAuthHeader = request.headers.get('x-auth-check') === '1';
 
   // Check if route is protected
   const isProtectedRoute = protectedRoutes.some(route => 

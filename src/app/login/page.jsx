@@ -19,7 +19,10 @@ export default function Login() {
   useEffect(() => {
     // Only redirect if auth check is complete and user is authenticated
     if (!isLoading && isAuthenticated) {
-      router.replace("/dashboard");
+      // Check for redirect parameter
+      const params = new URLSearchParams(window.location.search);
+      const redirectTo = params.get('redirect') || '/dashboard';
+      router.replace(redirectTo);
     }
   }, [isAuthenticated, isLoading, router]);
 
@@ -66,9 +69,15 @@ export default function Login() {
         // Use user data from login response
         const userData = res.data.user;
         
-        // Cookie is automatically set by backend, just update context
+        // Cookie is automatically set by backend, update context
         login(userData);
-        router.push("/dashboard");
+        
+        // Get redirect parameter if present
+        const params = new URLSearchParams(window.location.search);
+        const redirectTo = params.get('redirect') || '/dashboard';
+        
+        // Force a full page navigation to ensure middleware sees the cookie
+        window.location.href = redirectTo;
       } else {
         // Display backend error message if available
         const errorMessage = res?.data?.message || "Login failed. Please try again.";
