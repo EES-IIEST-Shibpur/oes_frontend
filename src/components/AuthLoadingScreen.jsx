@@ -5,7 +5,7 @@
  */
 export default function AuthLoadingScreen() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#E8F0DE] via-white to-[#DDE9C8]">
+    <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-[#E8F0DE] via-white to-[#DDE9C8]">
       <div className="text-center">
         {/* Animated Logo/Icon */}
         <div className="relative mb-8">

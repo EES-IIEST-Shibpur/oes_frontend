@@ -9,7 +9,7 @@ export default function ResultsContentSkeleton() {
       {/* Main Result Card Skeleton */}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8 animate-pulse">
         {/* Score Card Section */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 px-8 py-12 text-center">
+        <div className="bg-linear-to-br from-blue-50 to-indigo-50 px-8 py-12 text-center">
           {/* Status Badge */}
           <div className="flex justify-center mb-4">
             <div className="h-6 w-24 bg-gray-200 rounded-full" />
@@ -62,7 +62,7 @@ export default function ResultsContentSkeleton() {
       {/* Detailed Answers Section Skeleton */}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+        <div className="bg-linear-to-r from-blue-600 to-indigo-600 px-6 py-4">
           <div className="h-6 w-48 bg-blue-400 rounded" />
         </div>
 
@@ -92,7 +92,7 @@ export default function ResultsContentSkeleton() {
                     key={j}
                     className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg"
                   >
-                    <div className="h-5 w-5 bg-gray-200 rounded-full flex-shrink-0" />
+                    <div className="h-5 w-5 bg-gray-200 rounded-full shrink-0" />
                     <div className="h-4 flex-1 bg-gray-200 rounded" />
                   </div>
                 ))}

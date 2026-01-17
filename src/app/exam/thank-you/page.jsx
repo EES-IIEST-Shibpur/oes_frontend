@@ -25,7 +25,7 @@ export default function ThankYouPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-green-50 to-blue-50 px-4">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
           {/* Success Icon */}

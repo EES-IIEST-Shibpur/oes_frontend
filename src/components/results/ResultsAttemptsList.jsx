@@ -160,7 +160,7 @@ export default function ResultsAttemptsList({ onSelectExam }) {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-fade-in">
             <div className="flex items-start gap-4 mb-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
+              <div className="shrink-0 w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
                 <Info size={24} className="text-amber-600" />
               </div>
               <div className="flex-1">

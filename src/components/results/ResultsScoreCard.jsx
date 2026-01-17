@@ -18,8 +18,8 @@ const ResultsScoreCard = memo(({ score, totalMarks, totalQuestions, isPass, stat
     <div
       className={`px-8 py-12 text-center ${
         isPass
-          ? 'bg-gradient-to-r from-green-50 to-emerald-50'
-          : 'bg-gradient-to-r from-red-50 to-rose-50'
+          ? 'bg-linear-to-r from-green-50 to-emerald-50'
+          : 'bg-linear-to-r from-red-50 to-rose-50'
       }`}
     >
       <div className="mb-6 flex justify-center">

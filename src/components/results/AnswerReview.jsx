@@ -68,7 +68,7 @@ const AnswerReview = memo(({ questions }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-[#75B06F] to-[#6B7F4D] px-8 py-6">
+      <div className="bg-linear-to-r from-[#75B06F] to-[#6B7F4D] px-8 py-6">
         <h2 className="text-2xl font-bold text-white">Detailed Answer Analysis</h2>
         <p className="text-white/90 mt-1">Review each question with correct answers and explanations</p>
       </div>
@@ -83,7 +83,7 @@ const AnswerReview = memo(({ questions }) => {
               <div className="flex items-start gap-4">
                 {/* Status Icon */}
                 <div
-                  className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                  className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
                     !answered 
                       ? 'bg-gray-100' 
                       : isCorrect 
@@ -156,7 +156,7 @@ const AnswerReview = memo(({ questions }) => {
                           >
                             <div className="flex items-center gap-3">
                               <div
-                                className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-semibold ${
+                                className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-semibold ${
                                   isCorrectOption
                                     ? 'bg-green-500 text-white'
                                     : isSelected
@@ -185,7 +185,7 @@ const AnswerReview = memo(({ questions }) => {
                   )}
 
                   {/* Answer Summary */}
-                  <div className="space-y-3 text-sm bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg border border-gray-200">
+                  <div className="space-y-3 text-sm bg-linear-to-br from-gray-50 to-gray-100 p-4 rounded-lg border border-gray-200">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
                         <p className="text-gray-600 font-semibold mb-1">Your Answer:</p>

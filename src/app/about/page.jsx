@@ -10,7 +10,7 @@ export default function AboutPage() {
         <Navbar />
             <div className="min-h-screen bg-white">
                 {/* Hero Section */}
-                <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-20 px-4">
+                <div className="bg-linear-to-r from-gray-900 to-gray-800 text-white py-20 px-4">
                     <div className="max-w-6xl mx-auto text-center">
                         <h1 className="text-5xl font-bold mb-6">About AptiCrack</h1>
                         <p className="text-xl text-gray-300 max-w-3xl mx-auto">
@@ -101,7 +101,7 @@ export default function AboutPage() {
                         <div className="grid md:grid-cols-2 gap-8">
                             <div className="flex gap-4">
                                 <div
-                                    className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+                                    className="w-12 h-12 rounded-full flex items-center justify-center flex-linear-0"
                                     style={{ backgroundColor: '#75B06F' }}
                                 >
                                     <CheckCircle className="w-6 h-6 text-white" />
@@ -115,7 +115,7 @@ export default function AboutPage() {
                             </div>
                             <div className="flex gap-4">
                                 <div
-                                    className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+                                    className="w-12 h-12 rounded-full flex items-center justify-center flex-linear-0"
                                     style={{ backgroundColor: '#75B06F' }}
                                 >
                                     <CheckCircle className="w-6 h-6 text-white" />
@@ -129,7 +129,7 @@ export default function AboutPage() {
                             </div>
                             <div className="flex gap-4">
                                 <div
-                                    className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+                                    className="w-12 h-12 rounded-full flex items-center justify-center flex-linear-0"
                                     style={{ backgroundColor: '#75B06F' }}
                                 >
                                     <CheckCircle className="w-6 h-6 text-white" />
@@ -143,7 +143,7 @@ export default function AboutPage() {
                             </div>
                             <div className="flex gap-4">
                                 <div
-                                    className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+                                    className="w-12 h-12 rounded-full flex items-center justify-center flex-linear-0"
                                     style={{ backgroundColor: '#75B06F' }}
                                 >
                                     <CheckCircle className="w-6 h-6 text-white" />
