@@ -100,6 +100,7 @@ export default function Login() {
         </div>
         <form
           onSubmit={handleSubmit}
+          autoComplete="on"
           className="w-full max-w-sm bg-white border rounded-xl shadow p-8 space-y-5"
         >
           {/* <Image src="/images/EES_Logo.png" alt="Welcome Image" width={100} height={50} /> */}
@@ -112,10 +113,12 @@ export default function Login() {
           )}
 
           <div className="space-y-1">
-            <label className="text-sm text-gray-700">Email</label>
+            <label htmlFor="email" className="text-sm text-gray-700">Email</label>
             <div className="relative">
               <Mail className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
               <input
+                id="email"
+                name="email"
                 type="email"
                 required
                 value={email}
@@ -128,10 +131,12 @@ export default function Login() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm text-gray-700">Password</label>
+            <label htmlFor="password" className="text-sm text-gray-700">Password</label>
             <div className="relative">
               <Key className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
               <input
+                id="password"
+                name="password"
                 type="password"
                 required
                 value={password}
