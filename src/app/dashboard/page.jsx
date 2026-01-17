@@ -10,6 +10,7 @@ import ExamInstructionsModal from "@/components/ExamInstructionsModal";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import StatsBar from "@/components/dashboard/StatsBar";
 import ExamSection from "@/components/dashboard/ExamSection";
+import AuthLoadingScreen from "@/components/AuthLoadingScreen";
 import { AuthContext } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 
@@ -23,13 +24,12 @@ export default function Dashboard() {
 
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [selectedExam, setSelectedExam] = useState(null);
+  const [isStarting, setIsStarting] = useState(false);
 
   // Ensure hooks are always called in the same order
   const userData = profileData?.data;
-  const userName = useMemo(
-    () => userData?.fullName || user?.data?.fullName || "Candidate",
-    [userData, user]
-  );
+  const userName = userData?.data?.fullName || user?.data?.fullName || "Candidate";
+
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function Dashboard() {
 
   // Show loading while checking authentication
   if (authLoading) {
-    return <DashboardSkeleton />;
+    return <AuthLoadingScreen />;
   }
 
   // Don't render if not authenticated
@@ -54,7 +54,9 @@ export default function Dashboard() {
   };
 
   const handleConfirmStart = async () => {
-    if (!selectedExam) return;
+    if (!selectedExam || isStarting) return;
+    
+    setIsStarting(true);
 
     try {
       const res = await apiFetch(
@@ -70,11 +72,13 @@ export default function Dashboard() {
       } else {
         alert("Unable to start exam. Please try again.");
         setShowInstructionsModal(false);
+        setIsStarting(false);
       }
     } catch (err) {
       console.error("Failed to start exam", err);
       alert("Failed to start exam.");
       setShowInstructionsModal(false);
+      setIsStarting(false);
     }
   };
 
@@ -115,6 +119,7 @@ export default function Dashboard() {
         onClose={handleCloseModal}
         onConfirm={handleConfirmStart}
         examTitle={selectedExam?.title}
+        isStarting={isStarting}
       />
 
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full">

@@ -122,7 +122,8 @@ export default function Login() {
                 type="email"
                 required
                 value={email}
-                autoComplete="email"
+                autoComplete="username email"
+                inputMode="email"
                 placeholder="Enter your email"
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-primary)"

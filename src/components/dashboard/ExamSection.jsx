@@ -46,7 +46,7 @@ const ExamSection = memo(({
             key={exam.id}
             exam={exam}
             isLive={title.includes('Live')}
-            onExamAction={onExamAction}
+            onStart={onExamAction}
           />
         ))}
       </div>

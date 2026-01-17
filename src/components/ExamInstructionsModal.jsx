@@ -1,11 +1,11 @@
 import { X, ChevronLeft, ChevronRight, Save, Send, Clock } from "lucide-react";
 
-export default function ExamInstructionsModal({ isOpen, onClose, onConfirm, examTitle }) {
+export default function ExamInstructionsModal({ isOpen, onClose, onConfirm, examTitle, isStarting }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm">
+      <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <div>
@@ -16,7 +16,7 @@ export default function ExamInstructionsModal({ isOpen, onClose, onConfirm, exam
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
+            className="p-2 hover:bg-gray-100 rounded-lg transition cursor-pointer"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
@@ -212,10 +212,18 @@ export default function ExamInstructionsModal({ isOpen, onClose, onConfirm, exam
           </p>
           <button
             onClick={onConfirm}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-white font-medium transition hover:opacity-90"
+            disabled={isStarting}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-white font-medium transition hover:opacity-90 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ backgroundColor: "#75B06F" }}
           >
-            I Understand, Start Exam
+            {isStarting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Starting...
+              </>
+            ) : (
+              'I Understand, Start Exam'
+            )}
           </button>
         </div>
       </div>

@@ -102,13 +102,16 @@ export default function Signup() {
           {!success && (
             <>
               <div className="space-y-1">
-                <label className="text-sm text-gray-700">Full Name</label>
+                <label htmlFor="signup-fullname" className="text-sm text-gray-700">Full Name</label>
                 <div className="relative">
                   <User className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
                   <input
+                    id="signup-fullname"
+                    name="fullName"
                     type="text"
                     required
                     value={fullName}
+                    autoComplete="name"
                     placeholder="Enter your full name"
                     onChange={(e) => setName(e.target.value)}
                     className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-primary)"
@@ -117,13 +120,17 @@ export default function Signup() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-sm text-gray-700">Email</label>
+                <label htmlFor="signup-email" className="text-sm text-gray-700">Email</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
                   <input
+                    id="signup-email"
+                    name="email"
                     type="email"
                     required
                     value={email}
+                    autoComplete="email"
+                    inputMode="email"
                     placeholder="Enter your email"
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-primary)"
@@ -132,13 +139,16 @@ export default function Signup() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-sm text-gray-700">Password</label>
+                <label htmlFor="signup-password" className="text-sm text-gray-700">Password</label>
                 <div className="relative">
                   <Key className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
                   <input
+                    id="signup-password"
+                    name="password"
                     type="password"
                     required
                     value={password}
+                    autoComplete="new-password"
                     placeholder="Enter your password"
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-primary)"

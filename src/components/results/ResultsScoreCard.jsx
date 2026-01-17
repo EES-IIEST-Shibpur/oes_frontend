@@ -7,8 +7,12 @@ import { CheckCircle, XCircle } from 'lucide-react';
  * ResultsScoreCard Component
  * Displays the main score and pass/fail status
  */
-const ResultsScoreCard = memo(({ score, totalQuestions, isPass, status }) => {
-  const percentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+const ResultsScoreCard = memo(({ score, totalMarks, totalQuestions, isPass, status }) => {
+  // Ensure all values are valid numbers
+  const safeScore = Number.isFinite(score) ? score : 0;
+  const safeTotalMarks = Number.isFinite(totalMarks) ? totalMarks : 0;
+  const safeTotalQuestions = Number.isFinite(totalQuestions) ? totalQuestions : 0;
+  const percentage = safeTotalMarks > 0 ? Math.round((safeScore / safeTotalMarks) * 100) : 0;
 
   return (
     <div
@@ -32,8 +36,12 @@ const ResultsScoreCard = memo(({ score, totalQuestions, isPass, status }) => {
 
       <div className="text-6xl font-bold text-gray-900 mb-2">{percentage}%</div>
 
-      <p className="text-xl text-gray-600 mb-6">
-        You scored {score} out of {totalQuestions} questions
+      <p className="text-xl text-gray-600 mb-4">
+        You scored {safeScore} out of {safeTotalMarks} marks
+      </p>
+      
+      <p className="text-lg text-gray-500 mb-6">
+        Total Questions: {safeTotalQuestions}
       </p>
 
       <div className="inline-block bg-white rounded-lg px-6 py-3 shadow-sm">

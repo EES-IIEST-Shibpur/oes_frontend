@@ -6,6 +6,7 @@ import { useExamAttempt, useSaveExamAnswer, useSubmitExam } from "@/hooks/useApi
 import { Clock, ChevronLeft, ChevronRight, Save, Send, X, AlertCircle, Wifi, WifiOff } from "lucide-react";
 import { useOfflineQueue } from "@/hooks/useOffline";
 import { isNetworkError, getErrorMessage } from "@/utils/errorHandler";
+import SubmitConfirmModal from "@/components/exam/SubmitConfirmModal";
 
 // Reducer function for managing exam state
 const examReducer = (state, action) => {
@@ -74,6 +75,12 @@ const initialState = {
 export default function ExamPage() {
   const { examId } = useParams();
   const router = useRouter();
+  
+  // Offline queue and error handling
+  const { isOnline, queueAnswer, clearPending, loadPendingAnswers } = useOfflineQueue();
+  const [savingError, setSavingError] = useState(null);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
 
   const { data: examData, isLoading, error: fetchError } = useExamAttempt(examId);
   const saveAnswerMutation = useSaveExamAnswer();
@@ -82,10 +89,21 @@ export default function ExamPage() {
   const [state, dispatch] = useReducer(examReducer, initialState);
   const timerRef = useRef(null);
 
-  // Offline queue and error handling
-  const { isOnline, queueAnswer, clearPending, loadPendingAnswers } = useOfflineQueue();
-  const [savingError, setSavingError] = useState(null);
-  const [showErrorAlert, setShowErrorAlert] = useState(false);
+
+  // Prevent back navigation
+  useEffect(() => {
+    const handlePopState = (e) => {
+      e.preventDefault();
+      window.history.pushState(null, '', window.location.href);
+    };
+
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   // Error boundary for fetch errors
   if (fetchError) {
@@ -233,51 +251,46 @@ export default function ExamPage() {
 
   const submitExam = () => {
     if (submitExamMutation.isPending) return;
-    if (!window.confirm("Submit exam? You cannot change answers after submission.")) return;
+    setShowSubmitModal(true);
+  };
 
-    try {
-      submitExamMutation.mutate(examId, {
-        onSuccess: () => {
-          setSavingError(null);
-          router.push(`/results?examId=${examId}`);
-        },
-        onError: (err) => {
-          console.error("Submit failed", err);
-          
-          if (isNetworkError(err)) {
-            setSavingError({
-              type: 'error',
-              message: 'Cannot submit - Server is offline. Your answers are saved. Try again when connection is restored.',
-            });
-          } else {
-            setSavingError({
-              type: 'error',
-              message: getErrorMessage(err),
-            });
-          }
-          setShowErrorAlert(true);
-        },
-      });
-    } catch (error) {
-      console.error("Error in submitExam:", error);
-      setSavingError({
-        type: 'error',
-        message: 'Failed to submit exam. Please try again.',
-      });
-      setShowErrorAlert(true);
-    }
+  const handleConfirmSubmit = () => {
+    submitExamMutation.mutate(examId, {
+      onSuccess: () => {
+        setSavingError(null);
+        setShowSubmitModal(false);
+        router.push(`/exam/thank-you?examId=${examId}`);
+      },
+      onError: (err) => {
+        console.error("Submit failed", err);
+        setShowSubmitModal(false);
+        
+        if (isNetworkError(err)) {
+          setSavingError({
+            type: 'error',
+            message: 'Cannot submit - Server is offline. Your answers are saved. Try again when connection is restored.',
+          });
+        } else {
+          setSavingError({
+            type: 'error',
+            message: getErrorMessage(err),
+          });
+        }
+        setShowErrorAlert(true);
+      },
+    });
   };
 
   const autoSubmit = () => {
     try {
       submitExamMutation.mutate(examId, {
         onSettled: () => {
-          router.push(`/results?examId=${examId}`);
+          router.push(`/exam/thank-you?examId=${examId}`);
         },
         onError: (err) => {
           console.error("Auto-submit failed", err);
-          // Even if auto-submit fails, redirect to results page
-          router.push(`/results?examId=${examId}`);
+          // Even if auto-submit fails, redirect to thank you page
+          router.push(`/exam/thank-you?examId=${examId}`);
         },
       });
     } catch (error) {
@@ -390,7 +403,7 @@ export default function ExamPage() {
         </div>
         <button
           onClick={() => setShowErrorAlert(false)}
-          className="text-xl leading-none font-bold opacity-60 hover:opacity-100"
+          className="text-xl leading-none font-bold opacity-60 hover:opacity-100 cursor-pointer"
         >
           ×
         </button>
@@ -602,6 +615,14 @@ export default function ExamPage() {
         </div>
       </div>
     </div>
+
+    {/* Submit Confirmation Modal */}
+    <SubmitConfirmModal
+      isOpen={showSubmitModal}
+      onClose={() => setShowSubmitModal(false)}
+      onConfirm={handleConfirmSubmit}
+      isSubmitting={submitExamMutation.isPending}
+    />
   </div>
 );
 }

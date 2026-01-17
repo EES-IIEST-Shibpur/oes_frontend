@@ -9,6 +9,8 @@ import ResultsStats from '@/components/results/ResultsStats';
 import ResultsActions from '@/components/results/ResultsActions';
 import AnswerReview from '@/components/results/AnswerReview';
 import ResultsAttemptsList from '@/components/results/ResultsAttemptsList';
+import ResultsContentSkeleton from '@/components/skeletons/ResultsContentSkeleton';
+import AuthLoadingScreen from '@/components/AuthLoadingScreen';
 import { AuthContext } from '@/context/AuthContext';
 
 /**
@@ -24,11 +26,7 @@ export default function ResultsContent() {
   const [isPrinting, setIsPrinting] = useState(false);
 
   if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    );
+    return <AuthLoadingScreen />;
   }
 
   if (!isAuthenticated) {
@@ -44,21 +42,9 @@ export default function ResultsContent() {
     );
   }
 
-  // Show loading while fetching results for selected exam
+  // Show loading skeleton while fetching results for selected exam
   if (isLoading) {
-    return (
-      <div className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 py-8 w-full">
-        <button
-          onClick={() => setSelectedExamId(null)}
-          className="mb-6 px-4 py-2 font-medium flex items-center gap-2"
-        >
-          ← Back to Attempts
-        </button>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-gray-500">Loading results...</div>
-        </div>
-      </div>
-    );
+    return <ResultsContentSkeleton />;
   }
 
   // Show error state
@@ -79,7 +65,7 @@ export default function ResultsContent() {
     );
   }
 
-  const result = resultData?.data?.data;
+  const result = resultData?.data;
   if (!result) {
     return (
       <div className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 py-8 w-full">
@@ -97,7 +83,22 @@ export default function ResultsContent() {
     );
   }
 
-  const { score, status, submittedAt, answers = [], totalQuestions, percentage, examTitle } = result;
+  const { 
+    score = 0, 
+    totalMarks = 0,
+    status = 'SUBMITTED', 
+    submittedAt, 
+    questions = [], 
+    totalQuestions = 0, 
+    percentage = 0, 
+    examTitle = 'Exam',
+    startedAt,
+    durationMinutes = 0
+  } = result;
+
+  // Calculate correct/incorrect counts with proper fallbacks
+  const correctCount = questions.filter(q => q.studentAnswer?.marksObtained > 0).length;
+  const incorrectCount = Math.max(0, (totalQuestions || 0) - correctCount);
 
   const handlePrint = () => {
     setIsPrinting(true);
@@ -108,40 +109,63 @@ export default function ResultsContent() {
   const handleDownload = () => {
     const content = `
 Exam Results Report
+====================
 Exam: ${examTitle}
 Date: ${new Date(submittedAt).toLocaleDateString()}
+Started: ${new Date(startedAt).toLocaleString()}
+Duration: ${durationMinutes} minutes
 
 SCORE SUMMARY
 =============
-Score: ${score}${totalQuestions ? ` / ${totalQuestions}` : ''}
+Score: ${score} / ${totalMarks} marks
 Percentage: ${percentage}%
 Status: ${status}
-Submitted: ${new Date(submittedAt).toLocaleString()}
+Total Questions: ${totalQuestions}
+Correct Answers: ${correctCount}
+Incorrect Answers: ${incorrectCount}
 
-ANSWER DETAILS
-==============
-${answers
+DETAILED ANSWER REVIEW
+======================
+${questions
   .map(
-    (answer, idx) => `
+    (q, idx) => `
 Question ${idx + 1}:
-Text: ${answer?.Question?.questionText || 'N/A'}
-Your Answer: ${
-      answer.selectedOptionIds?.[0]
-        ? `Option ${answer.selectedOptionIds[0]}`
-        : answer.numericalAnswer || 'Not answered'
-    }
-Status: ${answer.marksObtained > 0 ? 'Correct' : 'Incorrect'}
-Marks: ${answer.marksObtained || 0}
+${q.statement}
+Type: ${q.questionType}
+Marks: ${q.marks}
+
+${q.questionType === 'NUMERICAL' 
+  ? `Your Answer: ${q.studentAnswer?.numericalAnswer ?? 'Not answered'}
+Correct Answer: ${q.correctAnswer?.value ?? 'N/A'} (±${q.correctAnswer?.tolerance ?? 0})`
+  : `Options:
+${q.options.map((opt, i) => 
+  `  ${String.fromCharCode(65 + i)}. ${opt.text} ${opt.isCorrect ? '✓ (Correct)' : ''} ${
+    q.studentAnswer?.selectedOptionIds?.includes(opt.id) ? '← Your answer' : ''
+  }`
+).join('\n')}
+
+Your Answer: ${q.studentAnswer?.selectedOptionIds?.length > 0 
+  ? q.studentAnswer.selectedOptionIds.map(id => {
+      const opt = q.options.find(o => o.id === id);
+      return opt ? opt.text : 'Unknown';
+    }).join(', ')
+  : 'Not answered'}
+Correct Answer: ${q.questionType === 'MULTIPLE_CORRECT' 
+  ? q.options.filter(o => o.isCorrect).map(o => o.text).join(', ')
+  : q.options.find(o => o.isCorrect)?.text || 'N/A'}`}
+
+Marks Obtained: ${q.studentAnswer?.marksObtained ?? 0} / ${q.marks}
+Status: ${q.studentAnswer?.marksObtained > 0 ? 'Correct ✓' : 'Incorrect ✗'}
 `
   )
-  .join('\n')}
-    `;
+  .join('\n' + '='.repeat(50) + '\n')}
+    `.trim();
 
     const blob = new Blob([content], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `exam-results-${examTitle}-${new Date(submittedAt).getTime()}.txt`;
+    a.download = `exam-results-${examTitle.replace(/\s+/g, '-')}-${new Date(submittedAt).getTime()}.txt`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -160,6 +184,7 @@ Marks: ${answer.marksObtained || 0}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
         <ResultsScoreCard
           score={score}
+          totalMarks={totalMarks}
           totalQuestions={totalQuestions}
           isPass={percentage >= 40}
           status={status}
@@ -168,9 +193,10 @@ Marks: ${answer.marksObtained || 0}
         {/* Details Section */}
         <div className="px-8 py-8">
           <ResultsStats
-            correctCount={score}
-            incorrectCount={totalQuestions ? totalQuestions - score : 0}
+            correctCount={correctCount}
+            incorrectCount={incorrectCount}
             submittedAt={submittedAt}
+            percentage={percentage}
           />
 
           <ResultsActions
@@ -183,7 +209,7 @@ Marks: ${answer.marksObtained || 0}
       </div>
 
       {/* Detailed Answers Section */}
-      {answers && answers.length > 0 && <AnswerReview answers={answers} />}
+      {questions && questions.length > 0 && <AnswerReview questions={questions} />}
     </div>
   );
 }

@@ -129,20 +129,41 @@ export function useExamAttempt(examId) {
 
 export function useSaveExamAnswer() {
   return useMutation({
-    mutationFn: ({ examId, data }) =>
-      apiFetch(`/api/exam-attempt/${examId}/save`, {
+    mutationFn: async ({ examId, data }) => {
+      const response = await apiFetch(`/api/exam-attempt/${examId}/save`, {
         method: 'POST',
         body: data,
-      }),
+      });
+      
+      if (!response.ok) {
+        const error = new Error(response.data?.message || 'Failed to save answer');
+        error.response = response;
+        throw error;
+      }
+      
+      return response.data;
+    },
   });
 }
 
 export function useSubmitExam() {
   return useMutation({
-    mutationFn: (examId) =>
-      apiFetch(`/api/exam-attempt/${examId}/submit`, {
+    mutationFn: async (examId) => {
+      const response = await apiFetch(`/api/exam-attempt/${examId}/submit`, {
         method: 'POST',
-      }),
+      });
+
+      
+      if (!response.ok) {
+        const error = new Error(response.data?.message || 'Failed to submit exam');
+        error.response = response;
+        throw error;
+      }
+      
+      console.log("Submit response:", response);
+      
+      return response.data;
+    },
   });
 }
 
@@ -160,7 +181,7 @@ export function useMyAttempts() {
 export function useExamResults(examId) {
   return useQuery({
     queryKey: ['exam-results', examId],
-    queryFn: () => apiFetch(`/api/result/${examId}`),
+    queryFn: () => apiFetch(`/api/result/${examId}/analysis`),
     enabled: !!examId,
   });
 }
