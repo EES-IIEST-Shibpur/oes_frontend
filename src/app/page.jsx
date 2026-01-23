@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import HomeLeaderboard from "@/components/HomeLeaderboard";
 
 export default function Home() {
   const router = useRouter();
@@ -19,9 +20,24 @@ export default function Home() {
     <main className="flex flex-col min-h-screen bg-[#ECFAE5] from-blue-50 via-white to-green-50 text-gray-900">
       <Navbar />
 
+      {/* LEADERBOARD */}
+      <HomeLeaderboard />
+
       {/* HERO */}
-      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-20 pb-28 bg-linear-to-b from-(var(--color-primary-light)) via-white to-gray-50">
-        <div className="max-w-3xl">
+      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-20 pb-28 bg-linear-to-b from-(var(--color-primary-light)) via-white to-gray-50 overflow-hidden">
+        {/* Background Illustration */}
+        <div className="absolute inset-0 opacity-30 pointer-events-none">
+          <svg className="absolute top-10 right-10 w-64 h-64" viewBox="0 0 200 200" fill="none">
+            <circle cx="100" cy="100" r="80" stroke="#75B06F" strokeWidth="2" opacity="0.3"/>
+            <path d="M100 40 Q150 70 150 130 Q100 160 50 130 Q50 70 100 40Z" fill="#C5D89D" opacity="0.2"/>
+          </svg>
+          <svg className="absolute bottom-10 left-10 w-48 h-48" viewBox="0 0 200 200" fill="none">
+            <rect x="20" y="20" width="160" height="160" stroke="#75B06F" strokeWidth="2" opacity="0.3" rx="20"/>
+            <circle cx="100" cy="100" r="40" fill="#DDE9C8" opacity="0.2"/>
+          </svg>
+        </div>
+
+        <div className="max-w-3xl relative z-10">
           <div className="mb-3 inline-block bg-(var(--color-primary-soft)) text-(var(--color-primary-text)) text-xs font-medium px-3 py-1 rounded-full">
             Weekly aptitude test series for placements & exams
           </div>
@@ -67,21 +83,28 @@ export default function Home() {
               competitive participation across year groups.
             </p>
           </div>
-          <div className="bg-white rounded-xl shadow-md p-6 border">
-            <h4 className="text-lg font-semibold mb-2">Weekly Aptitude Sessions</h4>
-            <p className="text-gray-600">
-              Conducted every Saturday to help students prepare consistently and track improvement.
-              Focus areas include:
-            </p>
-            <ul className="mt-3 space-y-2 text-gray-700 text-sm list-disc list-inside">
-              <li>Quantitative Aptitude</li>
-              <li>Logical Reasoning</li>
-              <li>Analytical Problem Solving</li>
-              <li>Verbal & Interpretation</li>
-            </ul>
-            <p className="mt-3 text-gray-600">
-              Top performers are recognized and appreciated for their achievements.
-            </p>
+          <div className="relative">
+            {/* Illustration */}
+            <div className="bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl p-8 min-h-80 flex items-center justify-center relative overflow-hidden">
+              <svg className="w-full h-full absolute inset-0" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Brain icon - representing thinking */}
+                <circle cx="150" cy="80" r="40" fill="#75B06F" opacity="0.2"/>
+                <path d="M120 60Q100 50 90 70Q85 90 100 100Q120 110 150 100Q180 110 200 100Q215 90 210 70Q200 50 180 60" fill="#75B06F" opacity="0.3"/>
+                
+                {/* Books/Learning stack */}
+                <rect x="80" y="140" width="140" height="15" fill="#C5D89D" rx="3"/>
+                <rect x="70" y="160" width="160" height="15" fill="#B3C788" opacity="0.7" rx="3"/>
+                <rect x="60" y="180" width="180" height="15" fill="#9CBF5C" opacity="0.5" rx="3"/>
+                
+                {/* Rocket - growth */}
+                <path d="M150 220L140 250L150 240L160 250Z" fill="#75B06F" opacity="0.4"/>
+                <circle cx="150" cy="215" r="8" fill="#75B06F" opacity="0.4"/>
+              </svg>
+              <div className="relative z-10 text-center">
+                <BookOpen className="w-20 h-20 text-green-600 mx-auto mb-4 opacity-80" />
+                <p className="text-green-700 font-semibold">Learn & Grow</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -104,16 +127,58 @@ export default function Home() {
       {/* HOW IT WORKS */}
       <section className="max-w-6xl mx-auto px-6 py-20">
         <h3 className="text-2xl font-semibold text-center mb-10">How It Works</h3>
-        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          <Step number="01" title="Sign Up" text="Create your account and get access to the platform." />
-          <Step number="02" title="Choose Test" text="Select from weekly sessions or topic-based practice tests." />
-          <Step number="03" title="Take Exam" text="Attempt under real timed conditions with controlled environment." />
-          <Step number="04" title="Analyze Results" text="Review analytics and improve with consistent practice." />
+        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6">
+          <Step number="01" title="Sign Up" text="Create your account and get access to the platform." icon={UserSetupIcon} />
+          <Step number="02" title="Choose Test" text="Select from weekly sessions or topic-based practice tests." icon={ChooseTestIcon} />
+          <Step number="03" title="Take Exam" text="Attempt under real timed conditions with controlled environment." icon={TakeExamIcon} />
+          <Step number="04" title="Analyze Results" text="Review analytics and improve with consistent practice." icon={AnalyzeIcon} />
         </div>
       </section>
 
       <Footer />
     </main>
+  );
+}
+
+// User Setup Icon
+function UserSetupIcon() {
+  return (
+    <svg className="w-12 h-12 mx-auto mb-3 text-green-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2"/>
+      <path d="M6 20c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <path d="M16 6l3 3m0 0l-3 3m3-3H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+// Choose Test Icon
+function ChooseTestIcon() {
+  return (
+    <svg className="w-12 h-12 mx-auto mb-3 text-green-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+      <path d="M9 11h6M9 15h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <path d="M7 7h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// Take Exam Icon
+function TakeExamIcon() {
+  return (
+    <svg className="w-12 h-12 mx-auto mb-3 text-green-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/>
+      <path d="M12 7v5l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+// Analyze Results Icon
+function AnalyzeIcon() {
+  return (
+    <svg className="w-12 h-12 mx-auto mb-3 text-green-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 13h6v8H3zM11 7h6v14h-6zM19 3h2v18h-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M3 21h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
   );
 }
 
@@ -127,9 +192,10 @@ function Feature({ icon: Icon, title, text }) {
   );
 }
 
-function Step({ number, title, text }) {
+function Step({ number, title, text, icon: Icon }) {
   return (
-    <div>
+    <div className="text-center">
+      <Icon />
       <div className="text-3xl font-bold text-(var(--color-primary)) mb-1">{number}</div>
       <h4 className="font-semibold mb-1">{title}</h4>
       <p className="text-sm text-gray-600">{text}</p>

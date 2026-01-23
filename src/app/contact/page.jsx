@@ -37,7 +37,7 @@ export default function ContactPage() {
 
   return (
     <>
-    <Navbar />
+      <Navbar />
       <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 py-12 px-4">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -94,7 +94,7 @@ export default function ContactPage() {
                   <h3 className="font-semibold text-gray-800 mb-4">Follow Us</h3>
                   <div className="flex gap-4">
                     <a
-                      href="https://linkedin.com"
+                      href="https://www.linkedin.com/company/ees-iiests"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-3 rounded-lg hover:bg-white transition"
@@ -104,7 +104,7 @@ export default function ContactPage() {
                       <Linkedin className="w-5 h-5 text-white" />
                     </a>
                     <a
-                      href="https://instagram.com"
+                      href="https://instagram.com/ees_iiests"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-3 rounded-lg hover:bg-white transition"
