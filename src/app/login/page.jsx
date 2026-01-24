@@ -16,16 +16,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    // Only redirect if auth check is complete and user is authenticated
-    if (!isLoading && isAuthenticated) {
-      // Check for redirect parameter
-      const params = new URLSearchParams(window.location.search);
-      const redirectTo = params.get('redirect') || '/dashboard';
-      router.replace(redirectTo);
-    }
-  }, [isAuthenticated, isLoading, router]);
-
   // Show loading while checking authentication
   if (isLoading) {
     return null; // or return a loading spinner

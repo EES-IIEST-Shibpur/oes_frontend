@@ -8,16 +8,9 @@ import '../../admin/admin.global.css';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { login, isLoading, error, isAuthenticated } = useAdminAuth();
+  const { login, isLoading, error } = useAdminAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [localError, setLocalError] = useState('');
-
-  // Redirect to dashboard if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/admin/dashboard');
-    }
-  }, [isAuthenticated, router]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,7 +37,12 @@ export default function AdminLoginPage() {
 
     const result = await login(formData.email, formData.password);
     if (result.success) {
-      router.push('/admin/dashboard');
+      // Get redirect parameter if present
+      const params = new URLSearchParams(window.location.search);
+      const redirectTo = params.get('redirect') || '/admin/dashboard';
+      
+      // Force a full page navigation to ensure middleware sees the cookie
+      window.location.href = redirectTo;
     } else {
       setLocalError(result.error);
     }

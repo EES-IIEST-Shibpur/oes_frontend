@@ -1,23 +1,16 @@
 'use client';
 
-import { useContext, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useContext } from 'react';
 import { AuthContext } from '@/context/AuthContext';
 
 /**
  * ProtectedRoute Component
  * Wraps components that require authentication
- * Redirects to login if user is not authenticated
+ * NOTE: Security is enforced by middleware.js on the server-side.
+ * This component only handles loading states and UI, not access control.
  */
 export function ProtectedRoute({ children, fallback = null }) {
   const { isAuthenticated, isLoading } = useContext(AuthContext);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/login?redirect=' + encodeURIComponent(window.location.pathname));
-    }
-  }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
     return fallback || (
@@ -27,6 +20,8 @@ export function ProtectedRoute({ children, fallback = null }) {
     );
   }
 
+  // If not authenticated, middleware will redirect before this renders on SSR
+  // This check is only for client-side edge cases
   if (!isAuthenticated) {
     return null;
   }
@@ -36,17 +31,11 @@ export function ProtectedRoute({ children, fallback = null }) {
 
 /**
  * useProtectedRoute Hook
- * Use this hook in components to check authentication and redirect if needed
+ * Use this hook in components to check authentication status
+ * NOTE: Does not perform redirects - middleware handles that
  */
 export function useProtectedRoute() {
   const { isAuthenticated, isLoading, user } = useContext(AuthContext);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/login?redirect=' + encodeURIComponent(window.location.pathname));
-    }
-  }, [isAuthenticated, isLoading, router]);
 
   return {
     isAuthenticated,

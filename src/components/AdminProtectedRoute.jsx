@@ -1,23 +1,16 @@
 'use client';
 
-import { useContext, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useContext } from 'react';
 import { AdminAuthContext } from '@/context/AdminAuthContext';
 
 /**
  * AdminProtectedRoute Component
  * Wraps components that require admin authentication
- * Redirects to admin login if user is not authenticated as admin
+ * NOTE: Security is enforced by middleware.js on the server-side.
+ * This component only handles loading states and UI, not access control.
  */
 export function AdminProtectedRoute({ children, fallback = null }) {
   const { isAuthenticated, isLoading } = useContext(AdminAuthContext);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/admin/login?redirect=' + encodeURIComponent(window.location.pathname));
-    }
-  }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
     return fallback || (
@@ -27,6 +20,8 @@ export function AdminProtectedRoute({ children, fallback = null }) {
     );
   }
 
+  // If not authenticated, middleware will redirect before this renders on SSR
+  // This check is only for client-side edge cases
   if (!isAuthenticated) {
     return null;
   }
@@ -36,17 +31,11 @@ export function AdminProtectedRoute({ children, fallback = null }) {
 
 /**
  * useAdminProtectedRoute Hook
- * Use this hook in components to check admin authentication and redirect if needed
+ * Use this hook in components to check admin authentication status
+ * NOTE: Does not perform redirects - middleware handles that
  */
 export function useAdminProtectedRoute() {
   const { isAuthenticated, isLoading, admin } = useContext(AdminAuthContext);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/admin/login?redirect=' + encodeURIComponent(window.location.pathname));
-    }
-  }, [isAuthenticated, isLoading, router]);
 
   return {
     isAuthenticated,
