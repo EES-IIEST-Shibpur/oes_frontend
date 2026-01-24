@@ -1,4 +1,3 @@
-import { AdminAuthProvider } from '@/context/AdminAuthContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 import './globals.css';
@@ -14,9 +13,7 @@ export default function RootLayout({ children }) {
       <body>
         <ReactQueryProvider>
           <AuthProvider>
-            <AdminAuthProvider>
-              {children}
-            </AdminAuthProvider>
+            {children}
           </AuthProvider>
         </ReactQueryProvider>
       </body>

@@ -3,7 +3,14 @@ export default function Footer() {
     <footer className="bg-gray-900 text-gray-300 mt-auto">
       <div className="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-3 gap-8">
         <div>
-          <h4 className="font-semibold text-white">AptiCrack</h4>
+          <div className="flex items-center gap-2 mb-3">
+            <img 
+              src="/images/AptiCrack_Logo.png" 
+              alt="AptiCrack Logo" 
+              className="h-8 w-8 object-contain"
+            />
+            <h4 className="font-semibold text-white">AptiCrack</h4>
+          </div>
           <p className="text-sm mt-2">
             Enhancing aptitude skills for internships, placements, and competitive exams.
           </p>
@@ -11,7 +18,7 @@ export default function Footer() {
         <div>
           <h4 className="font-semibold text-white">Quick Links</h4>
           <ul className="mt-2 space-y-2 text-sm">
-            <li><a href="/admin/login" className="hover:text-white">Admin Login</a></li>
+            <li><a href="http://localhost:3001" className="hover:text-white" target="_blank" rel="noopener noreferrer">Admin Panel</a></li>
             <li><a href="/about" className="hover:text-white">About</a></li>
             <li><a href="/faq" className="hover:text-white">FAQ</a></li>
             <li><a href="/contact" className="hover:text-white">Contact</a></li>

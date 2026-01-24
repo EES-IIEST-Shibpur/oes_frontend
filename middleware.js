@@ -37,17 +37,6 @@ export function middleware(request) {
     pathname.startsWith(route)
   );
 
-  // Handle admin routes separately
-  const isAdminRoute = pathname.startsWith('/admin');
-  if (isAdminRoute && pathname !== '/admin/login') {
-    if (!token) {
-      const loginUrl = new URL('/admin/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-    return NextResponse.next();
-  }
-
   // Allow root and public routes
   if (pathname === '/' || isPublicRoute) {
     // If user is already logged in and accessing login/signup, redirect to dashboard
