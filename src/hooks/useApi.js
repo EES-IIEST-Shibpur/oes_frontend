@@ -1,3 +1,5 @@
+'use client';
+
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useContext } from 'react';
 import { apiFetch } from '@/lib/api';
@@ -58,6 +60,7 @@ export function useResendVerification() {
       apiFetch('/api/auth/resend-verification', {
         method: 'POST',
         body: data,
+        skipAuthRedirect: true,
       }),
   });
 }
@@ -76,12 +79,10 @@ export function useResetPassword() {
 // ============ Profile Hooks ============
 export function useProfile() {
   const { isAuthenticated, isLoading } = useContext(AuthContext);
+
   return useQuery({
     queryKey: ['profile'],
-    queryFn: () =>
-      apiFetch('/api/profile/me', {
-        skipAuthRedirect: false,
-      }),
+    queryFn: () => apiFetch('/api/profile/me'),
     retry: 1,
     enabled: !!isAuthenticated && !isLoading,
   });
@@ -105,7 +106,7 @@ export function useLiveExams() {
   return useQuery({
     queryKey: ['exams', 'live'],
     queryFn: () => apiFetch('/api/exam/live'),
-    staleTime: 1000 * 60 * 2, // 2 minutes for live exams
+    staleTime: 1000 * 60 * 2,
   });
 }
 
@@ -113,7 +114,7 @@ export function useUpcomingExams() {
   return useQuery({
     queryKey: ['exams', 'upcoming'],
     queryFn: () => apiFetch('/api/exam/upcoming'),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 }
 
@@ -123,58 +124,38 @@ export function useExamAttempt(examId) {
     queryKey: ['exam-attempt', examId],
     queryFn: () => apiFetch(`/api/exam-attempt/${examId}/attempt`),
     enabled: !!examId,
-    staleTime: 1000 * 60, // 1 minute for exam attempts
+    staleTime: 1000 * 60,
   });
 }
 
 export function useSaveExamAnswer() {
   return useMutation({
-    mutationFn: async ({ examId, data }) => {
-      const response = await apiFetch(`/api/exam-attempt/${examId}/save`, {
+    mutationFn: ({ examId, data }) =>
+      apiFetch(`/api/exam-attempt/${examId}/save`, {
         method: 'POST',
         body: data,
-      });
-      
-      if (!response.ok) {
-        const error = new Error(response.data?.message || 'Failed to save answer');
-        error.response = response;
-        throw error;
-      }
-      
-      return response.data;
-    },
+      }),
   });
 }
 
 export function useSubmitExam() {
   return useMutation({
-    mutationFn: async (examId) => {
-      const response = await apiFetch(`/api/exam-attempt/${examId}/submit`, {
+    mutationFn: (examId) =>
+      apiFetch(`/api/exam-attempt/${examId}/submit`, {
         method: 'POST',
-      });
-
-      
-      if (!response.ok) {
-        const error = new Error(response.data?.message || 'Failed to submit exam');
-        error.response = response;
-        throw error;
-      }
-      
-      console.log("Submit response:", response);
-      
-      return response.data;
-    },
+      }),
   });
 }
 
 // ============ Results Hooks ============
 export function useMyAttempts() {
   const { isAuthenticated, isLoading } = useContext(AuthContext);
+
   return useQuery({
     queryKey: ['my-attempts'],
     queryFn: () => apiFetch('/api/result'),
     enabled: !!isAuthenticated && !isLoading,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 }
 

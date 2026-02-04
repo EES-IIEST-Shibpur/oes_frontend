@@ -1,78 +1,125 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useSignup } from "@/hooks/useApi";
+import { useState, useEffect } from "react";
+import { useSignup, useResendVerification } from "@/hooks/useApi";
 import { User, Mail, Key } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
+const RESEND_COOLDOWN = 30; // seconds
+
 export default function Signup() {
-  const router = useRouter();
   const signupMutation = useSignup();
-  
+  const resendVerificationMutation = useResendVerification();
+
   const [fullName, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+
+  const [registeredEmail, setRegisteredEmail] = useState("");
   const [success, setSuccess] = useState(null);
+  const [error, setError] = useState(null);
+
+  const [cooldown, setCooldown] = useState(0);
+  const [autoResent, setAutoResent] = useState(false);
+
+  // ⏱ Countdown timer logic
+  useEffect(() => {
+    if (cooldown === 0) return;
+
+    const timer = setInterval(() => {
+      setCooldown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  const startCooldown = () => setCooldown(RESEND_COOLDOWN);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
 
-    // Client-side validation
-    if (!fullName.trim()) {
-      setError("Full name is required");
-      return;
-    }
-
-    if (fullName.trim().length < 3) {
-      setError("Full name must be at least 3 characters long");
-      return;
-    }
-
-    if (!email.trim()) {
-      setError("Email is required");
-      return;
-    }
-
-    if (!email.includes("@") || !email.includes(".")) {
-      setError("Please enter a valid email address");
-      return;
-    }
-
-    if (!password) {
-      setError("Password is required");
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long");
-      return;
-    }
+    // Validation
+    if (!fullName.trim()) return setError("Full name is required");
+    if (fullName.trim().length < 3)
+      return setError("Full name must be at least 3 characters");
+    if (!email.trim()) return setError("Email is required");
+    if (!email.includes("@")) return setError("Invalid email");
+    if (!password || password.length < 6)
+      return setError("Password must be at least 6 characters");
 
     try {
-      const res = await signupMutation.mutateAsync({ fullName, email, password });
+      // 1️⃣ Signup
+      await signupMutation.mutateAsync({
+        fullName,
+        email,
+        password,
+      });
 
-      if (res?.status === 201) {
-        setSuccess(
-          "Signup successful! A verification email has been sent to your registered email address. " +
-          "Please verify your email to activate your account. " +
-          "If you don't see the email, check your spam or junk folder."
-        );
-        // Clear form
-        setName("");
-        setEmail("");
-        setPassword("");
-      } else {
-        const errorMessage = res?.data?.message || "Signup failed. Please try again.";
-        setError(errorMessage);
+      // 2️⃣ Auto resend ONCE (backend workaround)
+      if (!autoResent) {
+        setAutoResent(true);
+        try {
+          await resendVerificationMutation.mutateAsync({ email });
+          startCooldown();
+        } catch {}
       }
+
+      setRegisteredEmail(email);
+      setSuccess(
+        "Signup successful! Please check your email to verify your account. " +
+        "After verification, you can sign in."
+      );
+
+      setName("");
+      setPassword("");
     } catch (err) {
-      const errorMessage = err?.message || "Signup failed. Please check your connection and try again.";
-      setError(errorMessage);
+      // 409 → existing user → resend instead
+      if (err?.response?.status === 409) {
+        if (!autoResent) {
+          setAutoResent(true);
+          try {
+            await resendVerificationMutation.mutateAsync({ email });
+            startCooldown();
+          } catch {}
+        }
+
+        setRegisteredEmail(email);
+        setSuccess(
+          "An account with this email already exists. " +
+          "We’ve resent the verification email."
+        );
+        return;
+      }
+
+      setError(
+        err?.response?.data?.message ||
+        err?.message ||
+        "Signup failed"
+      );
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (cooldown > 0) return;
+
+    setError(null);
+    try {
+      await resendVerificationMutation.mutateAsync({
+        email: registeredEmail,
+      });
+      setSuccess(
+        "Verification email resent. Please check your inbox or spam."
+      );
+      startCooldown();
+    } catch (err) {
+      setError(
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to resend verification email"
+      );
     }
   };
 
@@ -81,77 +128,61 @@ export default function Signup() {
       <Navbar />
 
       <div className="flex flex-1 items-center justify-center px-6 py-20">
-        <form 
+        <form
           onSubmit={handleSubmit}
           className="w-full max-w-sm bg-white border rounded-xl shadow p-8 space-y-5"
         >
-          <h2 className="text-2xl font-semibold text-center">Create Account</h2>
+          <h2 className="text-2xl font-semibold text-center">
+            Create Account
+          </h2>
 
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2 text-center">
+            <p className="text-sm text-red-600 bg-red-50 border rounded px-3 py-2 text-center">
               {error}
             </p>
           )}
 
           {success && (
-            <p className="text-sm text-green-600 bg-green-50 border border-green-200 rounded px-3 py-2 text-center">
+            <p className="text-sm text-green-600 bg-green-50 border rounded px-3 py-2 text-center">
               {success}
             </p>
           )}
 
           {!success && (
             <>
-              <div className="space-y-1">
-                <label htmlFor="signup-fullname" className="text-sm text-gray-700">Full Name</label>
+              <div>
+                <label className="text-sm">Full Name</label>
                 <div className="relative">
                   <User className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
                   <input
-                    id="signup-fullname"
-                    name="fullName"
-                    type="text"
-                    required
                     value={fullName}
-                    autoComplete="name"
-                    placeholder="Enter your full name"
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-primary)"
+                    className="w-full pl-10 border rounded-lg px-3 py-2 text-sm"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label htmlFor="signup-email" className="text-sm text-gray-700">Email</label>
+              <div>
+                <label className="text-sm">Email</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
                   <input
-                    id="signup-email"
-                    name="email"
-                    type="email"
-                    required
                     value={email}
-                    autoComplete="email"
-                    inputMode="email"
-                    placeholder="Enter your email"
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-primary)"
+                    className="w-full pl-10 border rounded-lg px-3 py-2 text-sm"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label htmlFor="signup-password" className="text-sm text-gray-700">Password</label>
+              <div>
+                <label className="text-sm">Password</label>
                 <div className="relative">
                   <Key className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
                   <input
-                    id="signup-password"
-                    name="password"
                     type="password"
-                    required
                     value={password}
-                    autoComplete="new-password"
-                    placeholder="Enter your password"
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-primary)"
+                    className="w-full pl-10 border rounded-lg px-3 py-2 text-sm"
                   />
                 </div>
               </div>
@@ -160,19 +191,37 @@ export default function Signup() {
                 type="submit"
                 disabled={signupMutation.isPending}
                 style={{ backgroundColor: "var(--color-primary)" }}
-                className="w-full text-sm font-medium rounded-lg py-2 transition text-gray-900 hover:opacity-90 disabled:opacity-50"
+                className="w-full py-2 rounded-lg text-sm font-medium"
               >
                 {signupMutation.isPending ? "Submitting..." : "Signup"}
               </button>
             </>
           )}
 
-          <div className="text-center text-xs text-gray-600">
+          {success && (
+            <>
+              <button
+                type="button"
+                onClick={handleResendVerification}
+                disabled={cooldown > 0 || resendVerificationMutation.isPending}
+                style={{ backgroundColor: "var(--color-primary)" }}
+                className="w-full py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+              >
+                {cooldown > 0
+                  ? `Resend in ${cooldown}s`
+                  : resendVerificationMutation.isPending
+                  ? "Resending..."
+                  : "Resend Verification Email"}
+              </button>
+            </>
+          )}
+
+          <p className="text-xs text-center">
             Already have an account?{" "}
-            <a href="/login" className="underline hover:text-gray-900">
+            <a href="/login" className="underline">
               Login
             </a>
-          </div>
+          </p>
         </form>
       </div>
 
